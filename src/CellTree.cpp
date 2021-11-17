@@ -492,19 +492,19 @@ vector<array<double, 2> *> &CellTree::kNNSearch(vector<double> &query, int k, ve
 		// p_i
 		p_u[i] = cellKeyNum / (((*t_rangeBound)[2 * i + 1] - (*t_rangeBound)[2 * i]) * (double)raw_data.size());
 
-		vector<double> *partition_bound = i == 0 ? &this->init_partion_bound_x : &this->init_partion_bound_y;
+		vector<double> *dim_hist_info = i == 0 ? &this->hist_info_x : &this->hist_info_y;
 		int start = 0;
-		int end = partition_bound->size() - 1;
+		int end = dim_hist_info->size() - 1;
 		while (start < end && (end - start) > 1)
 		{
 			int mid = (start + end) / 2;
-			if ((*partition_bound)[mid] <= query[i])
+			if ((*dim_hist_info)[mid] <= query[i])
 				start = mid;
 			else
 				end = mid;
 		}
 		hist_index[i] = start;
-		p_i[i] = 1 / (((*partition_bound).size() - 1) * ((*partition_bound)[hist_index[i] + 1] - (*partition_bound)[hist_index[i]]));
+		p_i[i] = 1 / (((*dim_hist_info).size() - 1) * ((*dim_hist_info)[hist_index[i] + 1] - (*dim_hist_info)[hist_index[i]]));
 		r_i[i] = p_u[i] / p_i[i] * R_bar;
 	}
 
