@@ -452,18 +452,17 @@ vector<array<double, 2> *> &CellTree::rangeSearch(vector<double> &query, vector<
 	return result;
 }
 
-vector<array<double, 2> *> &CellTree::kNNSearch(vector<double> &query, int k, vector<array<double, 2> *> &result)
+vector<array<double, 2> *> &CellTree::kNNSearch(array<double, 2> &query, int k, vector<array<double, 2> *> &result)
 {
 	boost::variant<InnerNode *, LeafNode *, GridNode *, int> node = &this->root;
 	double cellArea = 0.0;
 	double cellKeyNum = 0.0;
-	array<double, 2> queryArray = {query[0], query[1]};
 	vector<double> *t_rangeBound;
 
 	while (node.type() == typeid(InnerNode *))
 	{
 		InnerNode *innernode = boost::get<InnerNode *>(node);
-		int child_index = innernode->child_index(queryArray);
+		int child_index = innernode->child_index(query);
 		node = innernode->children[child_index];
 	}
 	if (node.type() == typeid(LeafNode *))
@@ -518,7 +517,7 @@ vector<array<double, 2> *> &CellTree::kNNSearch(vector<double> &query, int k, ve
 		this->DFSCelltree(range_query, temp_result, &this->root);
 		if (temp_result.size() > k)
 		{
-			sort(temp_result.begin(), temp_result.end(), sortForKNN(queryArray));
+			sort(temp_result.begin(), temp_result.end(), sortForKNN(query));
 			for (int i = 0; i < k; i++)
 			{
 				result.push_back(temp_result[i]);

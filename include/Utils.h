@@ -27,7 +27,7 @@ vector<double> splitNodeToSplitedRegion(vector<double> cell_range_bound, vector<
 vector<double> splitLeafNodeToGridRegion(vector<double> cell_range_bound, vector<double> split_point, int split_dim, int child_index);
 
 vector<array<double, 2> *> &bindary_search(vector<MetaData> &metadataVec, int begin_idx, int end_idx, MetaData &meta_key, std::vector<array<double, 2> *> &result, ExpRecorder &expr);
-int adjustPosition(vector<MetaData> &metadataVec, vector<int> error_bound, int pre_position, MetaData meta_key);
+int adjustPosition(vector<MetaData> &metadataVec, vector<int> error_bound, int pre_position, MetaData meta_key, int leftORright);
 void scan(vector<MetaData>& metadataVec, int begin, int end, double *min_range, double *max_range, vector<array<double, 2> *>& result);
 
 void orderMetaData(vector<MetaData> &metadataVec);

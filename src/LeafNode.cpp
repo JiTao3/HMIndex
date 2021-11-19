@@ -177,8 +177,8 @@ vector<array<double, 2> *> &LeafNode::rangeSearch(std::vector<double> query_rang
 	pre_min_position = pre_min_position > metadataVec.size() - 1 ? metadataVec.size() - 1 : pre_min_position;
 	pre_max_position = pre_max_position > metadataVec.size() - 1 ? metadataVec.size() - 1 : pre_max_position;
 
-	pre_min_position = adjustPosition(metadataVec, index_model->error_bound, pre_min_position, meta_min);
-	pre_max_position = adjustPosition(metadataVec, index_model->error_bound, pre_max_position, meta_max);
+	pre_min_position = adjustPosition(metadataVec, index_model->error_bound, pre_min_position, meta_min, -1);
+	pre_max_position = adjustPosition(metadataVec, index_model->error_bound, pre_max_position, meta_max, 1);
 	scan(metadataVec, pre_min_position, pre_max_position, min_range, max_range, result);
 
 	delete[] min_range;

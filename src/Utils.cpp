@@ -246,21 +246,37 @@ int bindarySearchAdjustPrePos(vector<MetaData> &metadataVec, int beginIndex, int
 	}
 }
 
-int adjustPosition(vector<MetaData> &metadataVec, vector<int> error_bound, int pre_position, MetaData meta_key)
+int adjustPosition(vector<MetaData> &metadataVec, vector<int> error_bound, int pre_position, MetaData meta_key, int leftORright)
 {
-	if (metadataVec[pre_position].map_val = meta_key.map_val)
+	if (metadataVec[pre_position].map_val == meta_key.map_val)
+	{
+		// > 0 👉
+		// < 0 👈
+		// upper bound move left
+		// lower bound move right
+		if (leftORright > 0)
+		{
+			while (metadataVec[pre_position].map_val == meta_key.map_val && pre_position < metadataVec.size())
+				pre_position++;
+		}
+		else
+		{
+			while (metadataVec[pre_position].map_val == meta_key.map_val && pre_position > 0)
+				pre_position--;
+		}
 		return pre_position;
+	}
 	else if (metadataVec[pre_position].map_val > meta_key.map_val)
 	{
 		// std::vector<int> offsets = bindary_search(metadataVec, pre_position + error_bound[0], pre_position, meta_key);
 		// pre_position = *std::max_element(offsets.begin(), offsets.end());
-		return bindarySearchAdjustPrePos(metadataVec, pre_position + error_bound[0], pre_position, meta_key, 1);
+		return bindarySearchAdjustPrePos(metadataVec, pre_position + error_bound[0], pre_position, meta_key, leftORright);
 	}
 	else
 	{
 		// std::vector<int> offsets = bindary_search(metadataVec, pre_position, pre_position + error_bound[0], meta_key);
 		// pre_position = *std::min_element(offsets.begin(), offsets.end());
-		return bindarySearchAdjustPrePos(metadataVec, pre_position, pre_position + error_bound[1], meta_key, -1);
+		return bindarySearchAdjustPrePos(metadataVec, pre_position, pre_position + error_bound[1], meta_key, leftORright);
 	}
 	// return pre_position;
 }
@@ -272,7 +288,7 @@ void scan(vector<MetaData> &metadataVec, int begin, int end, double *min_range, 
 		bool is_in = true;
 		for (int idx = 0; idx < MetaData::dim; idx++)
 		{
-			if (!((*metadataVec[i].data)[idx] >= min_range[i] && (*metadataVec[i].data)[idx] <= max_range[i]))
+			if (!((*(metadataVec[i].data))[idx] >= min_range[idx] && (*(metadataVec[i].data))[idx] <= max_range[idx]))
 			{
 				is_in = false;
 				break;

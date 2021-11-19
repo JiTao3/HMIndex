@@ -182,5 +182,5 @@ int IndexModel::preFastPosition(double map_val)
 	result = result.cwiseMax(hidenActive2);
 	double pre_pos = result(0, 0);
 	// cout << pre_pos << endl;
-	return (int)(pre_pos * this->mapValVec.size()) + 1;
+	return (int)(pre_pos * this->mapValVec.size());
 }

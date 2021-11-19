@@ -66,7 +66,7 @@ public:
 	void buildCheck(boost::variant<InnerNode *, LeafNode *, GridNode *, int> root, int child_index);
 	vector<array<double, 2> *> &pointSearch(array<double, 2> &query, vector<array<double, 2> *> &result, ExpRecorder &exp_Recorder);
 	vector<array<double, 2> *> &rangeSearch(vector<double> &query, vector<array<double, 2> *> &result, ExpRecorder &exp_Recorder);
-	vector<array<double, 2> *> &kNNSearch(vector<double> &query, int k, vector<array<double, 2> *> &result);
+	vector<array<double, 2> *> &kNNSearch(array<double, 2> &query, int k, vector<array<double, 2> *> &result);
 	void DFSCelltree(vector<double> &query, vector<array<double, 2> *> &result, boost::variant<InnerNode *, LeafNode *, GridNode *, int> root);
 	// vector<vector<double> *> pointTravel(vector<double> &query, boost::variant<InnerNode *, LeafNode *, GridNode *, int> root);
 	void train(boost::variant<InnerNode *, LeafNode *, GridNode *, int> root);
