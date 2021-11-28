@@ -481,6 +481,8 @@ vector<array<double, 2> *> &CellTree::kNNSearch(array<double, 2> &query, int k, 
 	}
 	double R_bar = sqrt((cellArea * k) / (M_PI * cellKeyNum));
 
+	// for each dimension use r_bar and eq-depth histgoram to estimate the cardinality of r_bar
+	//
 	array<double, MetaData::dim> p_u;
 	array<double, MetaData::dim> p_i;
 	array<double, MetaData::dim> r_i;
@@ -503,6 +505,7 @@ vector<array<double, 2> *> &CellTree::kNNSearch(array<double, 2> &query, int k, 
 				end = mid;
 		}
 		hist_index[i] = start;
+		// !!! p_i
 		p_i[i] = 1 / (((*dim_hist_info).size() - 1) * ((*dim_hist_info)[hist_index[i] + 1] - (*dim_hist_info)[hist_index[i]]));
 		r_i[i] = p_u[i] / p_i[i] * R_bar;
 	}
@@ -510,8 +513,11 @@ vector<array<double, 2> *> &CellTree::kNNSearch(array<double, 2> &query, int k, 
 	double range_R = r_i[0] > r_i[1] ? r_i[0] : r_i[1];
 	vector<array<double, 2> *> temp_result;
 
+	int num_range_query = 0;
+
 	while (true)
 	{
+
 		vector<double> range_query = {query[0] - range_R, query[0] + range_R, query[1] - range_R, query[1] + range_R};
 		temp_result.clear();
 		this->DFSCelltree(range_query, temp_result, &this->root);
@@ -524,8 +530,10 @@ vector<array<double, 2> *> &CellTree::kNNSearch(array<double, 2> &query, int k, 
 			}
 			break;
 		}
-		range_R *= 1.5;
+		num_range_query++;
+		range_R *= 2;
 	}
+	cout << "query" << num_range_query << endl;
 	return result;
 }
 

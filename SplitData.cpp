@@ -1,15 +1,17 @@
 #include "CellTree.h"
-#include <chrono>
 using namespace std;
+
+
+// int split_num = 100;// For OSM_CN OSM_NE_US
+int split_num = 40 ;
+// vector<double> data_space_bound = {70.9825433, 142.2560836, 4.999728700, 54.35880621};// OSM_CN
+// vector<double> data_space_bound = {-81.79535869999985, -65.27891709999955, 38.43836500000005, 45.98917950000055}; // OSM_NE_US
+vector<double> data_space_bound = {-90.3100275, -64.566563, 17.627786999999994, 47.457235};//Tiger
+// vector<double> data_space_bound = {0, 1, 0, 1}; //
+
 
 // void genCellTree(string, string);
 void expSplitDataSave(string, string);
-
-void expPointSearch(string, string);
-
-void testLeafNode();
-
-void testGridNode();
 
 int main(int argc, char *argv[])
 {
@@ -29,10 +31,7 @@ int main(int argc, char *argv[])
 void expSplitDataSave(string csv_path, string save_path)
 {
 	// 1000000 116309831
-	int split_num = 100;
 
-	// vector<double> data_space_bound = {-81.79535869999985, -65.27891709999955, 38.43836500000005, 45.98917950000055};
-	vector<double> data_space_bound = {70.9825433, 142.2560836, 4.999728700, 54.35880621};
 
 	string raw_data_path = csv_path;
 	cout << "raw data path: " << raw_data_path << endl;

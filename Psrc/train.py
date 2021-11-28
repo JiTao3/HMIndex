@@ -7,7 +7,7 @@ import numpy as np
 
 from torch.multiprocessing import Pool, Process, set_start_method
 
-device = torch.device("cuda:4" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 class IndexDataSet(Dataset):
@@ -35,7 +35,7 @@ class NNRegressionModel(nn.Module):
         self.input = nn.Linear(input_s, hiden_s)
         self.ac_f1 = nn.ReLU()
         self.hiden = nn.Linear(hiden_s, output_s)
-        self.ac_f2 = nn.ReLU()
+        # self.ac_f2 = nn.ReLU()
 
     def init_weight(self, weight):
         self.input.weight.data = weight[:100].view(-1, 1)
@@ -47,7 +47,7 @@ class NNRegressionModel(nn.Module):
         x = self.input(x)
         x = self.ac_f1(x)
         x = self.hiden(x)
-        x = self.ac_f2(x)
+        # x = self.ac_f2(x)
         return x
 
     def model_weight_all(self):
@@ -61,7 +61,7 @@ class NNRegressionModel(nn.Module):
 def trainMetaParam(model_param_path, raw_data_path, save_path, index):
     print("index: ", index)
     model_weight = np.genfromtxt(model_param_path, delimiter=",")
-    model_weight = torch.FloatTensor(model_weight, requires_grad=True)
+    model_weight = torch.tensor(model_weight, dtype=torch.float, requires_grad=True)
     regression_model = NNRegressionModel(1, 100, 1)
     regression_model.init_weight(model_weight)
     regression_model.to(device)
@@ -72,7 +72,7 @@ def trainMetaParam(model_param_path, raw_data_path, save_path, index):
         train_data, batch_size=raw_data.shape[0], shuffle=True, pin_memory=True
     )
     lossf = nn.MSELoss()
-    optimizer = torch.optim.Adam(regression_model.parameters(), lr=0.01)
+    optimizer = torch.optim.Adam(regression_model.parameters(), lr=0.005)
     num_epoch = 200
     for epoch in range(num_epoch):
         for sample in train_data_loader:
@@ -134,52 +134,68 @@ def model_error(raw_data_path, model_param_path):
         y = sample["position"]
         y_p = regression_model(x)
         for y_g, ypre in zip(y, y_p):
-            error = (y_g - ypre)*raw_data.shape[0]
-            if error>0 and error>upper_error:
+            error = (y_g - ypre) * raw_data.shape[0]
+            if error > 0 and error > upper_error:
                 upper_error = error
-            elif error <0 and error<lower_error:
+            elif error < 0 and error < lower_error:
                 lower_error = error
     print(lower_error, upper_error)
     return lower_error, upper_error
 
 
-if __name__ == "__main__":
-    model_param_path = "/data/jitao/dataset/OSM/trained_modelParam_for_split2_largeBatch/1385.csv"
-    raw_data_path = "/data/jitao/dataset/OSM/split2/1385.csv"
-    # trainRandomInitialModle(raw_data_path, model_param_path, 2)
-    model_error(raw_data_path, model_param_path)
-
-
 # if __name__ == "__main__":
-#     torch.multiprocessing.set_start_method("spawn")
-#     model_param_path = (
-#         "/data/jitao/dataset/OSM/new_init_model_parameter_for_split_2/"
-#     )
-#     raw_data_path = "/data/jitao/dataset/OSM/split2/"
-#     save_path = "/data/jitao/dataset/OSM/trained_modelParam_for_split2_largeBatch/"
-#     # save_random_path = (
-#     #     "/data/jitao/dataset/OSM/random_trained_model_param_for_split2/"
-#     # )
-#     data_name_list = os.listdir(raw_data_path)
-#     training_pool = Pool(20)
-#     for index, data_name in enumerate(data_name_list):
-#         training_pool.apply_async(
-#             # trainRandomInitialModle,
-#             # (
-#             #     raw_data_path + data_name,
-#             #     save_random_path + data_name,
-#             #     index,
-#             # ),
-#             trainMetaParam,
-#             (
-#                 model_param_path + data_name,
-#                 raw_data_path + data_name,
-#                 save_path + data_name,
-#                 index
-#             )
-#         )
-#     training_pool.close()
-#     training_pool.join()
+#     model_param_path = "/data/jitao/dataset/OSM/trained_modelParam_for_split2_largeBatch/1385.csv"
+#     raw_data_path = "/data/jitao/dataset/OSM/split2/1385.csv"
+#     # trainRandomInitialModle(raw_data_path, model_param_path, 2)
+#     model_error(raw_data_path, model_param_path)
+    # model_param_path = (
+    #     "/data/jitao/dataset/OSM_US_NE/initial_model_param_for_split/1.csv"
+    # )
+    # raw_data_path = "/data/jitao/dataset/OSM_US_NE/split/1.csv"
+    # save_path = "/data/jitao/dataset/OSM_US_NE/trained_modelParam_for_split/t.csv"
+    # trainMetaParam(model_param_path, raw_data_path, save_path, 1)
 
 
-# nohup python train.py > ../log/training_osm_cn_split2_largeBatch.log 2>&1 &
+
+
+if __name__ == "__main__":
+    torch.multiprocessing.set_start_method("spawn")
+    osm_cn_model_param_path = "/data/jitao/dataset/OSM/new_trained_model_param_for_split2/"
+    osm_cn_raw_data_path = "/data/jitao/dataset/OSM/split2/"
+    osm_cn_save_path = "/data/jitao/dataset/OSM/trained_modelParam_for_split2/"
+    osm_cn_save_random_path = "/data/jitao/dataset/OSM/trained_modelParam_for_split2_noac2/"
+
+    osm_ne_us_model_param_path = (
+        "/data/jitao/dataset/OSM_US_NE/initial_model_param_for_split/"
+    )
+    osm_ne_us_raw_data_path = "/data/jitao/dataset/OSM_US_NE/split/"
+    osm_ne_us_save_path = "/data/jitao/dataset/OSM_US_NE/trained_modelParam_for_split/"
+    # osm_ne_us_save_random_path = (
+    #     "/data/jitao/dataset/OSM/random_trained_model_param_for_split2/"
+    # )
+
+
+    data_name_list = os.listdir(osm_cn_raw_data_path)
+    training_pool = Pool(20)
+    for index, data_name in enumerate(data_name_list):
+        training_pool.apply_async(
+            trainRandomInitialModle,
+            (
+                osm_cn_raw_data_path + data_name,
+                osm_cn_save_random_path + data_name,
+                index,
+            ),
+            # trainMetaParam,
+            # (
+            #     model_param_path + data_name,
+            #     raw_data_path + data_name,
+            #     save_path + data_name,
+            #     index,
+            # ),
+        )
+    training_pool.close()
+    training_pool.join()
+
+
+# nohup python train.py > ../log/OSM_US_NE_trained_modelParam_for_split.log 2>&1 &
+# nohup python train.py > ../log/OSM_CN_random_modelParam_for_split.log 2>&1 &

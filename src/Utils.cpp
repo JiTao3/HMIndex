@@ -213,6 +213,7 @@ int bindarySearchAdjustPrePos(vector<MetaData> &metadataVec, int beginIndex, int
 	// leftORRight > 0 👉
 	// leftORRight < 0 👈
 	// int adjustPrePos = -1;
+
 	int begin = beginIndex;
 	int end = endIndex;
 	int mid = -1;
@@ -226,23 +227,21 @@ int bindarySearchAdjustPrePos(vector<MetaData> &metadataVec, int beginIndex, int
 		else
 			begin = mid + 1;
 	}
-	int left = mid - 1;
-	int right = mid + 1;
 	if (LeftORRight < 0)
 	{
-		while (left >= beginIndex && metadataVec[left].map_val == meta_key.map_val)
+		while (mid >= beginIndex && metadataVec[mid].map_val == meta_key.map_val)
 		{
-			left--;
+			mid--;
 		}
-		return left;
+		return mid;
 	}
 	else
 	{
-		while (right <= endIndex && metadataVec[right].map_val == meta_key.map_val)
+		while (mid <= endIndex && metadataVec[mid].map_val == meta_key.map_val)
 		{
-			right++;
+			mid++;
 		}
-		return right;
+		return mid;
 	}
 }
 
@@ -256,7 +255,7 @@ int adjustPosition(vector<MetaData> &metadataVec, vector<int> error_bound, int p
 		// lower bound move right
 		if (leftORright > 0)
 		{
-			while (metadataVec[pre_position].map_val == meta_key.map_val && pre_position < metadataVec.size())
+			while (metadataVec[pre_position].map_val == meta_key.map_val && pre_position < (metadataVec.size() - 1))
 				pre_position++;
 		}
 		else
@@ -270,13 +269,21 @@ int adjustPosition(vector<MetaData> &metadataVec, vector<int> error_bound, int p
 	{
 		// std::vector<int> offsets = bindary_search(metadataVec, pre_position + error_bound[0], pre_position, meta_key);
 		// pre_position = *std::max_element(offsets.begin(), offsets.end());
-		return bindarySearchAdjustPrePos(metadataVec, pre_position + error_bound[0], pre_position, meta_key, leftORright);
+		int min_position = pre_position + error_bound[0] < 0 ? 0 : pre_position + error_bound[0];
+		if (min_position == pre_position) 
+			return pre_position;
+		else 
+			return bindarySearchAdjustPrePos(metadataVec, min_position, pre_position, meta_key, leftORright);
 	}
 	else
 	{
 		// std::vector<int> offsets = bindary_search(metadataVec, pre_position, pre_position + error_bound[0], meta_key);
 		// pre_position = *std::min_element(offsets.begin(), offsets.end());
-		return bindarySearchAdjustPrePos(metadataVec, pre_position, pre_position + error_bound[1], meta_key, leftORright);
+		int max_position = pre_position + error_bound[1] > metadataVec.size() - 1 ? metadataVec.size() - 1 : pre_position + error_bound[1];
+		if (max_position == pre_position)
+			return pre_position;
+		else 
+			return bindarySearchAdjustPrePos(metadataVec, pre_position, max_position, meta_key, leftORright);
 	}
 	// return pre_position;
 }
