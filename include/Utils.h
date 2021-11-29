@@ -3,6 +3,7 @@
 #include <vector>
 #include <array>
 #include <algorithm>
+#include <bitset>
 #include "MetaData.h"
 #include "IndexModel.h"
 #include "ExpRecorder.h"
@@ -35,6 +36,10 @@ void orderMetaData(vector<MetaData> &metadataVec);
 vector<int> getCellIndex(array<double, 2> &raData, vector<double> &initial_partition_bound_x, vector<double> &initial_partition_bound_y);
 
 int queryCellRealtion(vector<double>& rangeBound, vector<double>&query);
+
+bool insertInBound(vector<MetaData> &metadataVec, bitset<BITMAP_SIZE>& bitmap, MetaData& insertMetaData, int begin, int end);
+bool insertInExpSearch(vector<MetaData> &metadataVec, bitset<BITMAP_SIZE>& bitmap, MetaData& insertMetaData);
+
 
 template <typename T>
 std::vector<double> LinSpace(T start_in, T end_in, int num_in)

@@ -202,3 +202,69 @@ void LeafNode::saveMetaDataVectoCSV(string file_path)
 		outfile << '\n';
 	}
 }
+
+void LeafNode::setGappedArray()
+{
+	double insertGap = (double)this->metadataVec.size() / initialGapSize;
+	this->bitMap.set();
+
+	for (int i = 0; i < initialGapSize; i++)
+	{
+		MetaData *tmpMedata = new MetaData();
+		metadataVec.insert(metadataVec.begin() + (int)(insertGap * i) + i, *tmpMedata);
+		this->bitMap[(int)(insertGap * i) + i] = 0;
+	}
+
+	for (int i = metadataVec.size(); i < bitMap.size(); i++)
+	{
+		this->bitMap[i] = 0;
+	}
+}
+
+void LeafNode::insert(array<double, 2> &point)
+{
+	MetaData insertMetadata(&point);
+	insertMetadata.setMapVal(this->range_bound, this->cell_area);
+	int insertPosition = this->index_model->preFastPosition(insertMetadata.map_val);
+	bool binaryInsert = false;
+
+	while (!this->bitMap[insertPosition--])
+		;
+	if (this->metadataVec[insertPosition].map_val == insertMetadata.map_val)
+	{
+		// when equality find a position on the right to insert
+		int maxPosition = insertPosition + this->index_model->error_bound[1];
+		binaryInsert = insertInBound(metadataVec, bitMap, insertMetadata, insertPosition, maxPosition);
+	}
+	else if (this->metadataVec[insertPosition].map_val > insertMetadata.map_val)
+	{
+		int minPosition = insertPosition + this->index_model->error_bound[0];
+		binaryInsert = insertInBound(metadataVec, bitMap, insertMetadata, minPosition, insertPosition);
+	}
+	else
+	{
+		int maxPosition = insertPosition + this->index_model->error_bound[1];
+		binaryInsert = insertInBound(metadataVec, bitMap, insertMetadata, insertPosition, maxPosition);
+	}
+	if (!binaryInsert)
+	{
+		// exponential search to find a position
+		this->expSearchInUse = true;
+		if (this->metadataVec[insertPosition].map_val > insertMetadata.map_val)
+		{
+			// 👈 find a gap position
+			// get insert position 
+			// move data in interval [gap_position, insert position]
+			// insert
+			
+		}
+		else 
+		{
+			// 👉 find a gap
+			// get insert position 
+			// move data in interval [insert position, gap_position]
+			// insert
+		}
+
+	}
+}

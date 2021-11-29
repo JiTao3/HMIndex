@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <bitset>
 #include "MetaData.h"
 #include "IndexModel.h"
 #include "Utils.h"
@@ -22,6 +23,11 @@ public:
 	bool splitFlag = false;
 	void *parent = nullptr;
 
+	// for update
+	int initialGapSize = 5000;
+	bitset<BITMAP_SIZE> bitMap;
+	bool expSearchInUse = false;
+
 	LeafNode();
 	LeafNode(std::vector<MetaData> &_metadatas, std::vector<double> _range_bound);
 	~LeafNode();
@@ -30,8 +36,13 @@ public:
 	double getCellArea();
 	void setMapVals();
 	void getKeyCounter();
-	vector<array<double, 2> *>& pointSearch(array<double, 2> key, vector<array<double, 2> *>& result, ExpRecorder& exp_Recorder);
-	vector<array<double, 2> *>& rangeSearch(std::vector<double> query_range, vector<array<double, 2> *>& result);
+	vector<array<double, 2> *> &pointSearch(array<double, 2> key, vector<array<double, 2> *> &result, ExpRecorder &exp_Recorder);
+	vector<array<double, 2> *> &rangeSearch(std::vector<double> query_range, vector<array<double, 2> *> &result);
 	void saveMetaDataVectoCSV(string file_path);
+
+	void setGappedArray();
+	void insert(array<double, 2>& point);
+	void remove(array<double, 2>& point);
+
 private:
 };

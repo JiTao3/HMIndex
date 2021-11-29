@@ -5,6 +5,8 @@ using namespace std;
 
 MetaData::MetaData()
 {
+    this->data = nullptr;
+    this->map_val = 0.0;
 }
 
 MetaData::MetaData(array<double, 2>* data)

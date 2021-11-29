@@ -217,7 +217,7 @@ int bindarySearchAdjustPrePos(vector<MetaData> &metadataVec, int beginIndex, int
 	int begin = beginIndex;
 	int end = endIndex;
 	int mid = -1;
-	while (begin < end)
+	while (begin <= end)
 	{
 		mid = (begin + end) / 2;
 		if (metadataVec[mid].map_val == meta_key.map_val)
@@ -270,9 +270,9 @@ int adjustPosition(vector<MetaData> &metadataVec, vector<int> error_bound, int p
 		// std::vector<int> offsets = bindary_search(metadataVec, pre_position + error_bound[0], pre_position, meta_key);
 		// pre_position = *std::max_element(offsets.begin(), offsets.end());
 		int min_position = pre_position + error_bound[0] < 0 ? 0 : pre_position + error_bound[0];
-		if (min_position == pre_position) 
+		if (min_position == pre_position)
 			return pre_position;
-		else 
+		else
 			return bindarySearchAdjustPrePos(metadataVec, min_position, pre_position, meta_key, leftORright);
 	}
 	else
@@ -282,7 +282,7 @@ int adjustPosition(vector<MetaData> &metadataVec, vector<int> error_bound, int p
 		int max_position = pre_position + error_bound[1] > metadataVec.size() - 1 ? metadataVec.size() - 1 : pre_position + error_bound[1];
 		if (max_position == pre_position)
 			return pre_position;
-		else 
+		else
 			return bindarySearchAdjustPrePos(metadataVec, pre_position, max_position, meta_key, leftORright);
 	}
 	// return pre_position;
@@ -366,3 +366,65 @@ double distFunction(array<double, 2> *point1, array<double, 2> &point2)
 {
 	return sqrt(pow(((*point1)[0] - point2[0]), 2) + pow(((*point1)[1] - point2[1]), 2));
 }
+
+bool insertInBound(vector<MetaData> &metadataVec, bitset<BITMAP_SIZE> &bitmap, MetaData &insertMetaData, int begin, int end)
+{
+	begin = begin < 0 ? 0 : begin;
+	end = end < metadataVec.size() ? end : metadataVec.size() - 1;
+	while (!bitmap[begin--])
+		;
+	while (!bitmap[end++])
+		;
+	begin = begin < 0 ? 0 : begin;
+	end = end < metadataVec.size() ? end : metadataVec.size() - 1;
+
+	bool FindInsertPos = false;
+	int frontNotGapPos = -1;
+	// find a position do not move the gap array
+	for (int i = begin; i < end + 1; i++)
+	{
+		if (bitmap[i])
+		{
+			if (metadataVec[i].map_val < insertMetaData.map_val)
+			{
+				frontNotGapPos = i;
+				continue;
+			}
+			else if (metadataVec[i].map_val == insertMetaData.map_val)
+			{
+				frontNotGapPos = i;
+				continue;
+			}
+			else
+			{
+				for (int j = frontNotGapPos; j < i; j++)
+				{
+					if (bitmap[j])
+						continue;
+					else
+					{
+						metadataVec[j] = insertMetaData;
+						bitmap[j] = 1;
+						FindInsertPos = true;
+						break;
+					}
+				}
+				if (FindInsertPos)
+					break;
+			}
+		}
+	}
+
+	// move to find a position
+	// each object can move in the circle with radius of errorbound and center of itself
+	// wrong idea becouse we do not known the correct place
+
+	return FindInsertPos;
+}
+
+bool insertInExpSearch(vector<MetaData> &metadataVec, bitset<BITMAP_SIZE>& bitmap, MetaData& insertMetaData)
+{
+	
+}
+
+

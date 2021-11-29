@@ -4,10 +4,7 @@ project(CellTree CXX)
 
 set(CMAKE_CXX_STANDARD 14)
 
-set(CMAKE_BUILD_TYPE Release)
-set(CMAKE_CXX_FLAGS "-Wall -Wextra")
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+message(STATUS"Build type: ${CMAKE_BUILD_TYPE}")
 
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "/home/jitao/clib/libtorch")
 find_package(Torch REQUIRED)
