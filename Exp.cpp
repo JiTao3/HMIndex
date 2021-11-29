@@ -18,11 +18,11 @@ void expkNNSearch(string, string, int);
 
 int main(int argc, char *argv[])
 {
-	cout << argv[1] << endl;
-	cout << argv[2] << endl;
+	// cout << argv[1] << endl;
+	// cout << argv[2] << endl;
 	// cout << argv[3] << endl;
-	// string s1 = "/data/jitao/dataset/OSM/osm.csv";
-	// string s2 = "/data/jitao/dataset/OSM/new_trained_model_param_for_split2/";
+	string s1 = "/data/jitao/dataset/OSM/osm.csv";
+	string s2 = "/data/jitao/dataset/OSM/new_trained_model_param_for_split2/";
 	// expSplitDataSave(argv[1], argv[2]);
 	// expSplitDataSave(argv[1], argv[2]);
 
@@ -31,8 +31,8 @@ int main(int argc, char *argv[])
 	// expPointSearch(s1, s2);
 
 
-	expRangeSearch(argv[1], argv[2]);
-	// expRangeSearch(s1, s2);
+	// expRangeSearch(argv[1], argv[2]);
+	expRangeSearch(s1, s2);
 
 
 	// expkNNSearch(s1, s2, 10);

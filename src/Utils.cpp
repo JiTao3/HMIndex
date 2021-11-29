@@ -229,7 +229,7 @@ int bindarySearchAdjustPrePos(vector<MetaData> &metadataVec, int beginIndex, int
 	}
 	if (LeftORRight < 0)
 	{
-		while (mid >= beginIndex && metadataVec[mid].map_val == meta_key.map_val)
+		while (mid > beginIndex && metadataVec[mid].map_val == meta_key.map_val)
 		{
 			mid--;
 		}
@@ -237,7 +237,7 @@ int bindarySearchAdjustPrePos(vector<MetaData> &metadataVec, int beginIndex, int
 	}
 	else
 	{
-		while (mid <= endIndex && metadataVec[mid].map_val == meta_key.map_val)
+		while (mid < endIndex && metadataVec[mid].map_val == meta_key.map_val)
 		{
 			mid++;
 		}
