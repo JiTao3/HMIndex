@@ -18,6 +18,7 @@ GridNode::GridNode(vector<MetaData> metadataVec, vector<double> rangeBound)
 	{
 		scalingMapValVec.push_back(this->mapValtoScaling(medata.map_val));
 	}
+	this->initialBitMap();
 	this->index_model = new IndexModel(scalingMapValVec);
 	// before build model you should change the metadata map val to scaling one?
 	// this->index_model->buildModel();
@@ -50,12 +51,12 @@ vector<array<double, 2> *>& GridNode::pointSearch(array<double, 2> key, vector<a
 	{
 		// int min_search_index = std::max(pre_position + index_model->error_bound[1], 0);
 		int min_search_index = pre_position + index_model->error_bound[0] > 0 ? pre_position + index_model->error_bound[0] : 0;
-		return bindary_search(metadataVec, min_search_index, pre_position, meta_key, result, exp_Recorder);
+		return bindary_search(metadataVec, metadataVecBitMap, min_search_index, pre_position, meta_key, result, exp_Recorder);
 	}
 	else
 	{
 		int max_search_position = std::min(pre_position + index_model->error_bound[0], (int)(metadataVec.size() - 1));
-		return bindary_search(metadataVec, pre_position, max_search_position, meta_key, result, exp_Recorder);
+		return bindary_search(metadataVec, metadataVecBitMap, pre_position, max_search_position, meta_key, result, exp_Recorder);
 	}
 }
 
@@ -121,6 +122,7 @@ vector<array<double, 2> *>& GridNode::rangeSearch(vector<double> query_range, ve
 	pre_min_position = adjustPosition(metadataVec, index_model->error_bound, pre_min_position, meta_min, -1);
 	pre_max_position = adjustPosition(metadataVec, index_model->error_bound, pre_max_position, meta_max, 1);
 	scan(metadataVec, pre_min_position, pre_max_position, min_range, max_range, result);
+	scanBuffer(insertBuffer, bufferDataSize, min_range, max_range, result);
 
 	delete[] min_range;
 	delete[] max_range;
@@ -174,4 +176,82 @@ void GridNode::saveMetaDataVectoCSV(string file_path)
 		outfile << this->mapValtoScaling(medata.map_val);
 		outfile << '\n';
 	}
+}
+
+
+void GridNode::initialBitMap()
+{
+	this->metadataVecBitMap.reset();
+	for (int i = 0; i < metadataVec.size(); i++)
+	{
+		this->metadataVecBitMap[i] = 1;
+	}
+}
+
+
+bool GridNode::insert(array<double, 2> &point)
+{
+	// return ture if merge then in cell tree check the leaf node
+	// return false if not merge.
+
+	MetaData insertMetadata(&point);
+	double cell_area = this->getCellArea();
+	insertMetadata.setMapVal(this->parent_rangeBound, cell_area);
+	bool mergeFlag = false;
+	if (bufferDataSize < INSERT_BUFFERSIZE)
+	{
+		insertBuffer[bufferDataSize] = insertMetadata;
+		bufferDataSize++;
+		std::sort(insertBuffer.begin(), insertBuffer.begin() + bufferDataSize, compareMetadata);
+	}
+	else
+	{
+		// merge the data into metadataVec
+		for (int i = 0; i < bufferDataSize; i++)
+		{
+			metadataVec.push_back(insertBuffer[i]);
+		}
+		mergeFlag = true;
+		bufferDataSize = 0;
+	}
+	return mergeFlag;
+}
+
+bool GridNode::remove(array<double, 2> &point)
+{
+
+	MetaData deleteMetadata(&point);
+	double cell_area = this->getCellArea();
+	deleteMetadata.setMapVal(this->parent_rangeBound, cell_area);
+	int prePosition = this->index_model->preFastPosition(this->mapValtoScaling(deleteMetadata.map_val));
+
+	if (metadataVec[prePosition].map_val > deleteMetadata.map_val)
+	{
+		// int min_search_index = std::max(pre_position + index_model->error_bound[1], 0);
+		int min_search_index = prePosition + index_model->error_bound[0] > 0 ? prePosition + index_model->error_bound[0] : 0;
+		deleteMetadataInRange(metadataVec, metadataVecBitMap, min_search_index, prePosition, deleteMetadata);
+	}
+	else
+	{
+		// int max_search_position = std::min(pre_position + index_model->error_bound[0], (int)(metadataVec.size() - 1));
+		int max_search_position = prePosition + index_model->error_bound[1] > metadataVec.size() - 1 ? metadataVec.size() - 1 : prePosition + index_model->error_bound[1];
+		deleteMetadataInRange(metadataVec, metadataVecBitMap, prePosition, max_search_position, deleteMetadata);
+	}
+	int deleteNumInBuffer = 0;
+	for (int i = 0; i < bufferDataSize; i++)
+	{
+		if (compareMetadata(insertBuffer[i], deleteMetadata))
+		{
+			insertBuffer[i].map_val = numeric_limits<double>::max();
+			insertBuffer[i].data = nullptr;
+			deleteNumInBuffer++;
+		}
+	}
+	if (deleteNumInBuffer > 0)
+	{
+		std::sort(insertBuffer.begin(), insertBuffer.begin() + bufferDataSize, compareMetadata);
+		this->bufferDataSize -= deleteNumInBuffer;
+	}
+
+	// build check this node in cell tree by checking num.
 }

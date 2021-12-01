@@ -21,6 +21,14 @@ public:
 	//InnerNode* parent = nullptr;
 	vector<double> parent_rangeBound;
 
+	// for update
+	array<MetaData, INSERT_BUFFERSIZE> insertBuffer;
+	int bufferDataSize=0;
+	bitset<BITMAP_SIZE> metadataVecBitMap;
+
+	// bit set for delete?
+
+
 	GridNode();
 	GridNode(vector<MetaData> metadataVec, vector<double> rangeBound);
 	~GridNode();
@@ -32,5 +40,12 @@ public:
 	double getCellArea();
 	double getGridArea();
 	void saveMetaDataVectoCSV(string file_path);
+
+	void initialBitMap();
+
+
+	bool insert(array<double, 2> &point);
+	bool remove(array<double, 2> &point);
+
 private:
 };

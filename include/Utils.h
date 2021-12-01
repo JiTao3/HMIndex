@@ -27,19 +27,21 @@ vector<MetaData> splitLeafNodeToGrid(vector<MetaData> &metadatas, vector<double>
 vector<double> splitNodeToSplitedRegion(vector<double> cell_range_bound, vector<double> split_point, int index);
 vector<double> splitLeafNodeToGridRegion(vector<double> cell_range_bound, vector<double> split_point, int split_dim, int child_index);
 
-vector<array<double, 2> *> &bindary_search(vector<MetaData> &metadataVec, int begin_idx, int end_idx, MetaData &meta_key, std::vector<array<double, 2> *> &result, ExpRecorder &expr);
+vector<array<double, 2> *> &bindary_search(vector<MetaData> &metadataVec, bitset<BITMAP_SIZE>& bitmap, int begin_idx, int end_idx, MetaData &meta_key, std::vector<array<double, 2> *> &result, ExpRecorder &expr);
 int adjustPosition(vector<MetaData> &metadataVec, vector<int> error_bound, int pre_position, MetaData meta_key, int leftORright);
 void scan(vector<MetaData>& metadataVec, int begin, int end, double *min_range, double *max_range, vector<array<double, 2> *>& result);
 
 void orderMetaData(vector<MetaData> &metadataVec);
 
+bool compareMetadata(MetaData me_data1, MetaData me_data2);
+
+bool deleteMetadataInRange(vector<MetaData> &metadataVec, bitset<BITMAP_SIZE>& bitmap, int begin_idx, int end_idx, MetaData &meta_key);
+
+void scanBuffer(array<MetaData, INSERT_BUFFERSIZE>& insertBuffer, int bufferDataSize, double *min_range, double *max_range, vector<array<double, 2> *>& result);
+
 vector<int> getCellIndex(array<double, 2> &raData, vector<double> &initial_partition_bound_x, vector<double> &initial_partition_bound_y);
 
 int queryCellRealtion(vector<double>& rangeBound, vector<double>&query);
-
-bool insertInBound(vector<MetaData> &metadataVec, bitset<BITMAP_SIZE>& bitmap, MetaData& insertMetaData, int begin, int end);
-bool insertInExpSearch(vector<MetaData> &metadataVec, bitset<BITMAP_SIZE>& bitmap, MetaData& insertMetaData);
-
 
 template <typename T>
 std::vector<double> LinSpace(T start_in, T end_in, int num_in)

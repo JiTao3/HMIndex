@@ -71,4 +71,9 @@ public:
 	// vector<vector<double> *> pointTravel(vector<double> &query, boost::variant<InnerNode *, LeafNode *, GridNode *, int> root);
 	void train(boost::variant<InnerNode *, LeafNode *, GridNode *, int> root);
 
+	
+	void insert(array<double, 2> &point);
+	void remove(array<double, 2> &point);
+
+
 };

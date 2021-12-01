@@ -27,6 +27,7 @@ LeafNode::LeafNode(std::vector<MetaData> &_metadatas, std::vector<double> _range
 		mapvalBound[0] = 0.0;
 		mapvalBound[1] = 0.0;
 	}
+	this->initialBitMap();
 	index_model = new IndexModel(&metadataVec);
 	// index_model->buildModel();
 }
@@ -105,13 +106,13 @@ vector<array<double, 2> *> &LeafNode::pointSearch(array<double, 2> key, std::vec
 	{
 		// int min_search_index = std::max(pre_position + index_model->error_bound[1], 0);
 		int min_search_index = pre_position + index_model->error_bound[0] > 0 ? pre_position + index_model->error_bound[0] : 0;
-		return bindary_search(metadataVec, min_search_index, pre_position, meta_key, result, exp_Recorder);
+		return bindary_search(metadataVec, metadataVecBitMap, min_search_index, pre_position, meta_key, result, exp_Recorder);
 	}
 	else
 	{
 		// int max_search_position = std::min(pre_position + index_model->error_bound[0], (int)(metadataVec.size() - 1));
 		int max_search_position = pre_position + index_model->error_bound[1] > metadataVec.size() - 1 ? metadataVec.size() - 1 : pre_position + index_model->error_bound[1];
-		return bindary_search(metadataVec, pre_position, max_search_position, meta_key, result, exp_Recorder);
+		return bindary_search(metadataVec, metadataVecBitMap, pre_position, max_search_position, meta_key, result, exp_Recorder);
 	}
 	// auto end_BinSearch = chrono::high_resolution_clock::now();
 	// exp_Recorder.pointBindarySearchTime +=chrono::duration_cast<chrono::nanoseconds>(end_BinSearch - start_BinSearch).count();
@@ -180,6 +181,8 @@ vector<array<double, 2> *> &LeafNode::rangeSearch(std::vector<double> query_rang
 	pre_min_position = adjustPosition(metadataVec, index_model->error_bound, pre_min_position, meta_min, -1);
 	pre_max_position = adjustPosition(metadataVec, index_model->error_bound, pre_max_position, meta_max, 1);
 	scan(metadataVec, pre_min_position, pre_max_position, min_range, max_range, result);
+	// ! scanBuffer
+	scanBuffer(insertBuffer, bufferDataSize, min_range, max_range, result);
 
 	delete[] min_range;
 	delete[] max_range;
@@ -203,68 +206,76 @@ void LeafNode::saveMetaDataVectoCSV(string file_path)
 	}
 }
 
-void LeafNode::setGappedArray()
+void LeafNode::initialBitMap()
 {
-	double insertGap = (double)this->metadataVec.size() / initialGapSize;
-	this->bitMap.set();
-
-	for (int i = 0; i < initialGapSize; i++)
+	this->metadataVecBitMap.reset();
+	for (int i = 0; i < metadataVec.size(); i++)
 	{
-		MetaData *tmpMedata = new MetaData();
-		metadataVec.insert(metadataVec.begin() + (int)(insertGap * i) + i, *tmpMedata);
-		this->bitMap[(int)(insertGap * i) + i] = 0;
-	}
-
-	for (int i = metadataVec.size(); i < bitMap.size(); i++)
-	{
-		this->bitMap[i] = 0;
+		this->metadataVecBitMap[i] = 1;
 	}
 }
 
-void LeafNode::insert(array<double, 2> &point)
+bool LeafNode::insert(array<double, 2> &point)
 {
+	// return ture if merge then in cell tree check the leaf node
+	// return false if not merge.
+
 	MetaData insertMetadata(&point);
 	insertMetadata.setMapVal(this->range_bound, this->cell_area);
-	int insertPosition = this->index_model->preFastPosition(insertMetadata.map_val);
-	bool binaryInsert = false;
-
-	while (!this->bitMap[insertPosition--])
-		;
-	if (this->metadataVec[insertPosition].map_val == insertMetadata.map_val)
+	bool mergeFlag = false;
+	if (bufferDataSize < INSERT_BUFFERSIZE)
 	{
-		// when equality find a position on the right to insert
-		int maxPosition = insertPosition + this->index_model->error_bound[1];
-		binaryInsert = insertInBound(metadataVec, bitMap, insertMetadata, insertPosition, maxPosition);
-	}
-	else if (this->metadataVec[insertPosition].map_val > insertMetadata.map_val)
-	{
-		int minPosition = insertPosition + this->index_model->error_bound[0];
-		binaryInsert = insertInBound(metadataVec, bitMap, insertMetadata, minPosition, insertPosition);
+		insertBuffer[bufferDataSize] = insertMetadata;
+		bufferDataSize++;
+		std::sort(insertBuffer.begin(), insertBuffer.begin() + bufferDataSize, compareMetadata);
 	}
 	else
 	{
-		int maxPosition = insertPosition + this->index_model->error_bound[1];
-		binaryInsert = insertInBound(metadataVec, bitMap, insertMetadata, insertPosition, maxPosition);
+		// merge the data into metadataVec
+		for (int i = 0; i < bufferDataSize; i++)
+		{
+			metadataVec.push_back(insertBuffer[i]);
+		}
+		mergeFlag = true;
+		bufferDataSize = 0;
 	}
-	if (!binaryInsert)
-	{
-		// exponential search to find a position
-		this->expSearchInUse = true;
-		if (this->metadataVec[insertPosition].map_val > insertMetadata.map_val)
-		{
-			// 👈 find a gap position
-			// get insert position 
-			// move data in interval [gap_position, insert position]
-			// insert
-			
-		}
-		else 
-		{
-			// 👉 find a gap
-			// get insert position 
-			// move data in interval [insert position, gap_position]
-			// insert
-		}
+	return mergeFlag;
+}
 
+bool LeafNode::remove(array<double, 2> &point)
+{
+
+	MetaData deleteMetadata(&point);
+	deleteMetadata.setMapVal(this->range_bound, this->cell_area);
+	int prePosition = this->index_model->preFastPosition(deleteMetadata.map_val);
+
+	if (metadataVec[prePosition].map_val > deleteMetadata.map_val)
+	{
+		// int min_search_index = std::max(pre_position + index_model->error_bound[1], 0);
+		int min_search_index = prePosition + index_model->error_bound[0] > 0 ? prePosition + index_model->error_bound[0] : 0;
+		deleteMetadataInRange(metadataVec, metadataVecBitMap, min_search_index, prePosition, deleteMetadata);
 	}
+	else
+	{
+		// int max_search_position = std::min(pre_position + index_model->error_bound[0], (int)(metadataVec.size() - 1));
+		int max_search_position = prePosition + index_model->error_bound[1] > metadataVec.size() - 1 ? metadataVec.size() - 1 : prePosition + index_model->error_bound[1];
+		deleteMetadataInRange(metadataVec, metadataVecBitMap, prePosition, max_search_position, deleteMetadata);
+	}
+	int deleteNumInBuffer = 0;
+	for (int i = 0; i < bufferDataSize; i++)
+	{
+		if (compareMetadata(insertBuffer[i], deleteMetadata))
+		{
+			insertBuffer[i].map_val = numeric_limits<double>::max();
+			insertBuffer[i].data = nullptr;
+			deleteNumInBuffer++;
+		}
+	}
+	if (deleteNumInBuffer > 0)
+	{
+		std::sort(insertBuffer.begin(), insertBuffer.begin() + bufferDataSize, compareMetadata);
+		this->bufferDataSize -= deleteNumInBuffer;
+	}
+
+	// build check this node in cell tree by checking num.
 }

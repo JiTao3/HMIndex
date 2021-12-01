@@ -1,5 +1,4 @@
 #include "Utils.h"
-#include <algorithm>
 
 using namespace std;
 
@@ -159,7 +158,7 @@ vector<double> splitLeafNodeToGridRegion(vector<double> cell_range_bound, vector
 	return split_region;
 }
 
-vector<array<double, 2> *> &bindary_search(vector<MetaData> &metadataVec, int begin_idx, int end_idx, MetaData &meta_key, std::vector<array<double, 2> *> &result, ExpRecorder &expr)
+vector<array<double, 2> *> &bindary_search(vector<MetaData> &metadataVec, bitset<BITMAP_SIZE> &bitmap, int begin_idx, int end_idx, MetaData &meta_key, std::vector<array<double, 2> *> &result, ExpRecorder &expr)
 {
 	// auto start_bin = chrono::high_resolution_clock::now();
 
@@ -171,7 +170,8 @@ vector<array<double, 2> *> &bindary_search(vector<MetaData> &metadataVec, int be
 		mid = (start + end) / 2;
 		if (equalMetadata(metadataVec[mid], meta_key))
 		{
-			result.push_back(metadataVec[mid].data);
+			if (bitmap[mid])
+				result.push_back(metadataVec[mid].data);
 			break;
 		}
 		else if (meta_key.map_val < metadataVec[mid].map_val)
@@ -188,7 +188,7 @@ vector<array<double, 2> *> &bindary_search(vector<MetaData> &metadataVec, int be
 	int right = mid + 1;
 	while (left >= begin_idx && metadataVec[left].map_val == meta_key.map_val)
 	{
-		if (equalMetadata(metadataVec[left], meta_key))
+		if (equalMetadata(metadataVec[left], meta_key) && bitmap[left])
 		{
 			result.push_back(metadataVec[left].data);
 		}
@@ -196,7 +196,7 @@ vector<array<double, 2> *> &bindary_search(vector<MetaData> &metadataVec, int be
 	}
 	while (right <= end_idx && metadataVec[right].map_val == meta_key.map_val)
 	{
-		if (equalMetadata(metadataVec[right], meta_key))
+		if (equalMetadata(metadataVec[right], meta_key) && bitmap[right])
 		{
 			result.push_back(metadataVec[right].data);
 		}
@@ -367,64 +367,76 @@ double distFunction(array<double, 2> *point1, array<double, 2> &point2)
 	return sqrt(pow(((*point1)[0] - point2[0]), 2) + pow(((*point1)[1] - point2[1]), 2));
 }
 
-bool insertInBound(vector<MetaData> &metadataVec, bitset<BITMAP_SIZE> &bitmap, MetaData &insertMetaData, int begin, int end)
+bool deleteMetadataInRange(vector<MetaData> &metadataVec, bitset<BITMAP_SIZE> &bitmap, int begin_idx, int end_idx, MetaData &deleteMetadata)
 {
-	begin = begin < 0 ? 0 : begin;
-	end = end < metadataVec.size() ? end : metadataVec.size() - 1;
-	while (!bitmap[begin--])
-		;
-	while (!bitmap[end++])
-		;
-	begin = begin < 0 ? 0 : begin;
-	end = end < metadataVec.size() ? end : metadataVec.size() - 1;
-
-	bool FindInsertPos = false;
-	int frontNotGapPos = -1;
-	// find a position do not move the gap array
-	for (int i = begin; i < end + 1; i++)
+	int start = begin_idx;
+	int end = end_idx;
+	int mid = -1;
+	bool deleteFlag = false;
+	while (start <= end)
 	{
-		if (bitmap[i])
+		mid = (start + end) / 2;
+		if (equalMetadata(metadataVec[mid], deleteMetadata))
 		{
-			if (metadataVec[i].map_val < insertMetaData.map_val)
-			{
-				frontNotGapPos = i;
-				continue;
-			}
-			else if (metadataVec[i].map_val == insertMetaData.map_val)
-			{
-				frontNotGapPos = i;
-				continue;
-			}
-			else
-			{
-				for (int j = frontNotGapPos; j < i; j++)
-				{
-					if (bitmap[j])
-						continue;
-					else
-					{
-						metadataVec[j] = insertMetaData;
-						bitmap[j] = 1;
-						FindInsertPos = true;
-						break;
-					}
-				}
-				if (FindInsertPos)
-					break;
-			}
+			// delete
+			// metadataVec.erase(metadataVec.begin() + mid);
+			bitmap[mid] = 0;
+			deleteFlag = true;
+			break;
+		}
+		else if (deleteMetadata.map_val < metadataVec[mid].map_val)
+		{
+			end = mid - 1;
+		}
+		else
+		{
+			start = mid + 1;
 		}
 	}
 
-	// move to find a position
-	// each object can move in the circle with radius of errorbound and center of itself
-	// wrong idea becouse we do not known the correct place
-
-	return FindInsertPos;
+	int left = mid - 1;
+	int right = mid + 1;
+	while (left >= begin_idx && metadataVec[left].map_val == deleteMetadata.map_val)
+	{
+		if (equalMetadata(metadataVec[left], deleteMetadata))
+		{
+			// result.push_back(metadataVec[left].data);
+			// metadataVec.erase(metadataVec.begin() + left);
+			bitmap[mid] = 0;
+			deleteFlag = true;
+		}
+		left--;
+	}
+	while (right <= end_idx && metadataVec[right].map_val == deleteMetadata.map_val)
+	{
+		if (equalMetadata(metadataVec[right], deleteMetadata))
+		{
+			// result.push_back(metadataVec[right].data);
+			// metadataVec.erase(metadataVec.begin() + right);
+			bitmap[mid] = 0;
+			deleteFlag = true;
+		}
+		right++;
+	}
+	return deleteFlag;
 }
 
-bool insertInExpSearch(vector<MetaData> &metadataVec, bitset<BITMAP_SIZE>& bitmap, MetaData& insertMetaData)
+void scanBuffer(array<MetaData, INSERT_BUFFERSIZE> &insertBuffer, int bufferDataSize, double *min_range, double *max_range, vector<array<double, 2> *> &result)
 {
-	
+	for (int i = 0; i < bufferDataSize; i++)
+	{
+		bool is_in = true;
+		for (int idx = 0; idx < MetaData::dim; idx++)
+		{
+			if (!((*(insertBuffer[i].data))[idx] >= min_range[idx] && (*(insertBuffer[i].data))[idx] <= max_range[idx]))
+			{
+				is_in = false;
+				break;
+			}
+		}
+		if (is_in)
+		{
+			result.push_back(insertBuffer[i].data);
+		}
+	}
 }
-
-
