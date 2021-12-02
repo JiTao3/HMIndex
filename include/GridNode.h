@@ -18,7 +18,7 @@ public:
 	double mapvalBound[2] = {0, 0};
 	vector<double> rangeBound;
 	IndexModel *index_model;
-	//InnerNode* parent = nullptr;
+	void *parent = nullptr;
 	vector<double> parent_rangeBound;
 
 	// for update
@@ -46,6 +46,8 @@ public:
 
 	bool insert(array<double, 2> &point);
 	bool remove(array<double, 2> &point);
+
+	int getKeysNum();
 
 private:
 };

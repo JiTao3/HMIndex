@@ -255,3 +255,10 @@ bool GridNode::remove(array<double, 2> &point)
 
 	// build check this node in cell tree by checking num.
 }
+
+
+
+int GridNode::getKeysNum()
+{
+	return this->metadataVecBitMap.count() + bufferDataSize;
+}

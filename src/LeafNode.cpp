@@ -15,7 +15,6 @@ LeafNode::LeafNode(std::vector<MetaData> &_metadatas, std::vector<double> _range
 	range_bound = _range_bound;
 	getCellArea();
 	setMapVals();
-	getKeyCounter();
 	orderMetaData(this->metadataVec);
 	if (_metadatas.size() > 0)
 	{
@@ -38,11 +37,6 @@ LeafNode::~LeafNode()
 	{
 		delete index_model;
 	}
-}
-
-void LeafNode::getKeyCounter()
-{
-	key_couter = metadataVec.size();
 }
 
 std::vector<double> LeafNode::getRangeBound()
@@ -278,4 +272,9 @@ bool LeafNode::remove(array<double, 2> &point)
 	}
 
 	// build check this node in cell tree by checking num.
+}
+
+int LeafNode::getKeysNum()
+{
+	return this->metadataVecBitMap.count() + bufferDataSize;
 }

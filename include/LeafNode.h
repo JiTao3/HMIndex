@@ -19,7 +19,7 @@ public:
 	std::vector<double> range_bound;
 	double cell_area = 1.0;
 	IndexModel *index_model;
-	int key_couter = 0;
+	// int key_couter = 0;
 	bool mergeDelete = false;
 	bool splitFlag = false;
 	void *parent = nullptr;
@@ -37,7 +37,7 @@ public:
 	std::vector<double> getRangeBound();
 	double getCellArea();
 	void setMapVals();
-	void getKeyCounter();
+
 	vector<array<double, 2> *> &pointSearch(array<double, 2> key, vector<array<double, 2> *> &result, ExpRecorder &exp_Recorder);
 	vector<array<double, 2> *> &rangeSearch(std::vector<double> query_range, vector<array<double, 2> *> &result);
 	void saveMetaDataVectoCSV(string file_path);
@@ -46,6 +46,9 @@ public:
 
 	bool insert(array<double, 2>& point);
 	bool remove(array<double, 2>& point);
+
+	int getKeysNum();
+
 
 private:
 };
