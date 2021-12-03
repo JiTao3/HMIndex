@@ -538,6 +538,7 @@ void CellTree::buildCheck(boost::variant<InnerNode *, LeafNode *, GridNode *, in
 
 			parent_node->children[std::min(child_index, selectedGridNodeIdx)] = replaceGridNode;
 			parent_node->children.erase(parent_node->children.begin() + std::max(selectedGridNodeIdx, child_index));
+			// TODO parent_node->split_point
 		}
 	}
 	else
@@ -868,11 +869,11 @@ void CellTree::insert(array<double, 2> &point)
 	// todo build check the leaf/grie node
 	bool buildCheck = false;
 	boost::variant<InnerNode *, LeafNode *, GridNode *, int> node = &this->root;
-
+	int child_index = 0;
 	while (node.type() == typeid(InnerNode *))
 	{
 		InnerNode *innernode = boost::get<InnerNode *>(node);
-		int child_index = innernode->child_index(point);
+		child_index = innernode->child_index(point);
 		node = innernode->children[child_index];
 	}
 	if (node.type() == typeid(LeafNode *))
@@ -881,7 +882,7 @@ void CellTree::insert(array<double, 2> &point)
 		buildCheck = leaf_node->insert(point);
 		if (buildCheck)
 		{
-			// !this->checkLeafNode(leaf_node);
+			this->buildCheck(leaf_node, child_index);
 		}
 	}
 	else if (node.type() == typeid(GridNode *))
@@ -890,7 +891,7 @@ void CellTree::insert(array<double, 2> &point)
 		buildCheck = grid_node->insert(point);
 		if (buildCheck)
 		{
-			// !this->checkGridNode(grid_node);
+			this->buildCheck(grid_node, child_index);
 		}
 	}
 }
