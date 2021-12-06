@@ -153,8 +153,35 @@ void IndexModel::loadParameter(string paramPath)
 	{
 		floatParam.push_back((float)param);
 	}
-	// nnModel->input.
-	torch::Tensor modelTensorParam = torch::tensor(modelParam, torch::dtype(torch::kFloat32));
+	this->initialIndexModel(floatParam);
+}
+
+int IndexModel::preFastPosition(double map_val)
+{
+	Eigen::Matrix<float, 1, 1> input{{(float)map_val}};
+	result = input * input_weight.transpose();
+	result = result + input_bias;
+	result = result.cwiseMax(hidenActive1) * hiden_weight.transpose();
+	result = result + hiden_bias;
+	result = result.cwiseMax(hidenActive2);
+	double pre_pos = result(0, 0);
+	return (int)(pre_pos * this->mapValVec.size());
+}
+
+void IndexModel::getParamFromScoket(int serverPort)
+{
+	vector<float> floatParam;
+	vector<double> sampleData;
+	connectMetaServer(floatParam, sampleData, serverPort, 301);	
+	
+	// TODO: traing 
+
+	this->initialIndexModel(floatParam);
+}
+
+void IndexModel::initialIndexModel(vector<float>& floatParam)
+{
+	torch::Tensor modelTensorParam = torch::tensor(floatParam, torch::dtype(torch::kFloat32));
 	torch::Tensor inputLayerWeight = modelTensorParam.index({torch::indexing::Slice(torch::indexing::None, 100, torch::indexing::None)}).view({-1, 1});
 	torch::Tensor inputLayerBias = modelTensorParam.index({torch::indexing::Slice(100, 200, torch::indexing::None)}).view({-1});
 	torch::Tensor hidenLayerWeight = modelTensorParam.index({torch::indexing::Slice(200, 300, torch::indexing::None)}).view({1, -1});
@@ -171,16 +198,4 @@ void IndexModel::loadParameter(string paramPath)
 	this->hiden_bias = modelParamVec.block(300, 0, 1, 1);
 }
 
-int IndexModel::preFastPosition(double map_val)
-{
-	Eigen::Matrix<float, 1, 1> input{{(float)map_val}};
-	// Eigen::MatrixXf result1;
-	result = input * input_weight.transpose();
-	result = result + input_bias;
-	result = result.cwiseMax(hidenActive1) * hiden_weight.transpose();
-	result = result + hiden_bias;
-	result = result.cwiseMax(hidenActive2);
-	double pre_pos = result(0, 0);
-	// cout << pre_pos << endl;
-	return (int)(pre_pos * this->mapValVec.size());
-}
+

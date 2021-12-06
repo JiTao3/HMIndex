@@ -5,6 +5,7 @@
 #include <Eigen/Core>
 #include "MetaData.h"
 #include "FileReader.h"
+#include "MetaClient.h"
 // #include "Utils.h"
 
 using namespace std;
@@ -86,4 +87,8 @@ public:
 	void loadParameter(string paramPath);
 
 	void getErrorBound();
+
+	void getParamFromScoket(int serverPort);
+
+	void initialIndexModel(vector<float>& floatParam);
 };
