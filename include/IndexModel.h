@@ -90,5 +90,6 @@ public:
 
 	void getParamFromScoket(int serverPort);
 
-	void initialIndexModel(vector<float>& floatParam);
+	void initialIndexModelParam(vector<float>& floatParam);
+	void initialIndexModelTrainedParam();
 };

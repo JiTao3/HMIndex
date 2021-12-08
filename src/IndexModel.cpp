@@ -6,6 +6,8 @@
 
 using namespace std;
 
+torch::Device device = torch::cuda::is_available() ? torch::Device(torch::kCUDA, 4) : torch::kCPU;
+
 NNDataSet::NNDataSet(std::vector<double> _map_vals)
 {
 	map_vals = _map_vals;
@@ -55,7 +57,7 @@ void IndexModel::buildModel()
 	auto data_loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(std::move(data_set), torch::data::DataLoaderOptions().batch_size(128));
 
 	torch::optim::Adam optimizer(nnModel->parameters(), 0.001);
-
+	this->nnModel->to(device);
 	for (size_t epoch = 0; epoch < 200; epoch++)
 	{
 		size_t batch_index = 0;
@@ -63,8 +65,8 @@ void IndexModel::buildModel()
 		for (auto &batch : *data_loader)
 		{
 			optimizer.zero_grad();
-			torch::Tensor pre = nnModel->forward(batch.data);
-			torch::Tensor loss = torch::mse_loss(pre, batch.target);
+			torch::Tensor pre = nnModel->forward(batch.data.to(device));
+			torch::Tensor loss = torch::mse_loss(pre, batch.target.to(device));
 			loss.backward();
 			optimizer.step();
 			// std::cout << "Epoch: " << epoch << "batch:"<< batch_index++ << "loss: " << std::setprecision(3) << loss.item<double>() << std::endl;
@@ -153,7 +155,8 @@ void IndexModel::loadParameter(string paramPath)
 	{
 		floatParam.push_back((float)param);
 	}
-	this->initialIndexModel(floatParam);
+	this->initialIndexModelParam(floatParam);
+	this->initialIndexModelTrainedParam();
 }
 
 int IndexModel::preFastPosition(double map_val)
@@ -172,14 +175,14 @@ void IndexModel::getParamFromScoket(int serverPort)
 {
 	vector<float> floatParam;
 	vector<double> sampleData;
-	connectMetaServer(floatParam, sampleData, serverPort, 301);	
-	
-	// TODO: traing 
+	connectMetaServer(floatParam, sampleData, serverPort, 301);
 
-	this->initialIndexModel(floatParam);
+	this->initialIndexModelParam(floatParam);
+	this->buildModel();
+	this->initialIndexModelTrainedParam();
 }
 
-void IndexModel::initialIndexModel(vector<float>& floatParam)
+void IndexModel::initialIndexModelParam(vector<float> &floatParam)
 {
 	torch::Tensor modelTensorParam = torch::tensor(floatParam, torch::dtype(torch::kFloat32));
 	torch::Tensor inputLayerWeight = modelTensorParam.index({torch::indexing::Slice(torch::indexing::None, 100, torch::indexing::None)}).view({-1, 1});
@@ -190,6 +193,20 @@ void IndexModel::initialIndexModel(vector<float>& floatParam)
 	nnModel->input->bias.set_data(inputLayerBias);
 	nnModel->hiden->weight.set_data(hidenLayerWeight);
 	nnModel->hiden->bias.set_data(hidenLayerBias);
+}
+
+void IndexModel::initialIndexModelTrainedParam()
+{
+	vector<float> inputLayerWeight_v(this->nnModel->input->weight.data_ptr<float>(), this->nnModel->input->weight.data_ptr<float>() + this->nnModel->input->weight.numel());
+	vector<float> inputLayerBias_v(this->nnModel->input->bias.data_ptr<float>(), this->nnModel->input->bias.data_ptr<float>() + this->nnModel->input->bias.numel());
+	vector<float> hidenLayerWeight_v(this->nnModel->hiden->weight.data_ptr<float>(), this->nnModel->hiden->weight.data_ptr<float>() + this->nnModel->hiden->weight.numel());
+	vector<float> hidenLayerBias_v(this->nnModel->hiden->bias.data_ptr<float>(), this->nnModel->hiden->bias.data_ptr<float>() + this->nnModel->hiden->bias.numel());
+
+	vector<float> floatParam;
+	floatParam.insert(floatParam.end(), inputLayerWeight_v.begin(), inputLayerWeight_v.end());
+	floatParam.insert(floatParam.end(), inputLayerBias_v.begin(), inputLayerBias_v.end());
+	floatParam.insert(floatParam.end(), hidenLayerWeight_v.begin(), hidenLayerWeight_v.end());
+	floatParam.insert(floatParam.end(), hidenLayerBias_v.begin(), hidenLayerBias_v.end());
 
 	Eigen::MatrixXf modelParamVec = Eigen::Map<Eigen::Matrix<float, 301, 1>>(floatParam.data());
 	this->input_weight = modelParamVec.block(0, 0, 100, 1);
@@ -197,5 +214,3 @@ void IndexModel::initialIndexModel(vector<float>& floatParam)
 	this->hiden_weight = modelParamVec.block(200, 0, 100, 1).transpose();
 	this->hiden_bias = modelParamVec.block(300, 0, 1, 1);
 }
-
-

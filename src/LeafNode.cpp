@@ -94,8 +94,9 @@ vector<array<double, 2> *> &LeafNode::pointSearch(array<double, 2> key, std::vec
 	// exp_Recorder.pointModelPreTime +=chrono::duration_cast<chrono::nanoseconds>(end_prePos - start_prePos).count();
 	// auto start_BinSearch = chrono::high_resolution_clock::now();
 
+	//scanbuffer
+
 	double pre_map_val = metadataVec[pre_position].map_val;
-	// wast time?
 	if (pre_map_val > meta_key.map_val)
 	{
 		// int min_search_index = std::max(pre_position + index_model->error_bound[1], 0);
