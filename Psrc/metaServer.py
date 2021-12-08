@@ -23,7 +23,7 @@ class MetaTCPHandler(socketserver.BaseRequestHandler):
 
     def _leo_cal_weight_(self, leo_model, batchSize):
         sampledData = struct.unpack("%sd" % batchSize, self.data)
-        # print(sampledData)
+        print(sampledData)
         input = torch.FloatTensor(sampledData).to(device)
         input = input.view(1, 1, input.shape[-1], 1)
         weight = leo_model.encode_decode(input)

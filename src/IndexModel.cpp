@@ -54,9 +54,9 @@ IndexModel::~IndexModel()
 void IndexModel::buildModel()
 {
 	auto data_set = NNDataSet(this->mapValVec).map(torch::data::transforms::Stack<>());
-	auto data_loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(std::move(data_set), torch::data::DataLoaderOptions().batch_size(128));
+	auto data_loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(std::move(data_set), torch::data::DataLoaderOptions().batch_size(128).workers(6));
 
-	torch::optim::Adam optimizer(nnModel->parameters(), 0.001);
+	torch::optim::SGD optimizer(nnModel->parameters(), 0.005);
 	this->nnModel->to(device);
 	for (size_t epoch = 0; epoch < 200; epoch++)
 	{
@@ -69,38 +69,15 @@ void IndexModel::buildModel()
 			torch::Tensor loss = torch::mse_loss(pre, batch.target.to(device));
 			loss.backward();
 			optimizer.step();
-			// std::cout << "Epoch: " << epoch << "batch:"<< batch_index++ << "loss: " << std::setprecision(3) << loss.item<double>() << std::endl;
+			// std::cout << "Epoch: " << epoch << "batch:"<< batch_index++ << "loss: " << std::setprecision(5) << loss.item<double>() << std::endl;
 			loss_item += loss.item<double>();
 		}
-		std::cout << "epoch: " << epoch << "loss:" << std::setprecision(5) << loss_item << std::endl;
+		std::cout << "epoch: " << epoch << " loss:" << std::setprecision(5) << loss_item << std::endl;
 	}
 
-	torch::NoGradGuard no_grad;
+	nnModel->to(torch::kCPU);
+	this->getErrorBound();
 
-	double up_error = 0.0;
-	double down_error = 0.0;
-	for (auto &batch : *data_loader)
-	{
-		torch::Tensor pre = nnModel->forward(batch.data);
-		torch::Tensor target = batch.target;
-		const size_t train_dataset_size = data_set.size().value();
-		torch::Tensor error = (target - pre) * (double)train_dataset_size;
-
-		for (int i = 0; i < error.sizes()[0]; i++)
-		{
-			double error_i = error[i].item<double>();
-			if (error_i < down_error && error_i < 0)
-			{
-				down_error = error_i;
-			}
-			else if (error_i > up_error && error_i > 0)
-			{
-				up_error = error_i;
-			}
-		}
-	}
-	error_bound.push_back((int)down_error - 1);
-	error_bound.push_back((int)up_error + 1);
 }
 
 void IndexModel::getErrorBound()
@@ -108,7 +85,7 @@ void IndexModel::getErrorBound()
 	torch::NoGradGuard no_grad;
 
 	auto data_set = NNDataSet(this->mapValVec).map(torch::data::transforms::Stack<>());
-	auto data_loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(std::move(data_set), torch::data::DataLoaderOptions().batch_size(5000));
+	auto data_loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(std::move(data_set), torch::data::DataLoaderOptions().batch_size(5000).workers(2));
 
 	double up_error = 0.0;
 	double down_error = 0.0;
@@ -175,6 +152,22 @@ void IndexModel::getParamFromScoket(int serverPort)
 {
 	vector<float> floatParam;
 	vector<double> sampleData;
+	vector<int> keyIdx;
+
+	int sampleBatchSize = 128;
+
+	for (int i = 0; i < this->mapValVec.size(); i++)
+		keyIdx.push_back(i);
+
+	std::random_device rd;
+	std::mt19937 g(rd());
+	std::shuffle(keyIdx.begin(), keyIdx.end(), g);
+
+	for (int i = 0; i < sampleBatchSize; i++)
+		sampleData.push_back(this->mapValVec[keyIdx[i]]);
+
+	sort(sampleData.begin(), sampleData.end());
+
 	connectMetaServer(floatParam, sampleData, serverPort, 301);
 
 	this->initialIndexModelParam(floatParam);

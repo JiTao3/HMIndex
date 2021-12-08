@@ -72,7 +72,7 @@ def trainMetaParam(model_param_path, raw_data_path, save_path, index):
         train_data, batch_size=raw_data.shape[0], shuffle=True, pin_memory=True
     )
     lossf = nn.MSELoss()
-    optimizer = torch.optim.Adam(regression_model.parameters(), lr=0.005)
+    optimizer = torch.optim.SGD(regression_model.parameters(), lr=0.005)
     num_epoch = 200
     for epoch in range(num_epoch):
         for sample in train_data_loader:
@@ -99,7 +99,7 @@ def trainRandomInitialModle(raw_data_path, save_path, index):
         train_data, batch_size=raw_data.shape[0], shuffle=True, pin_memory=True
     )
     lossf = nn.MSELoss()
-    optimizer = torch.optim.Adam(regression_model.parameters(), lr=0.01)
+    optimizer = torch.optim.SGD(regression_model.parameters(), lr=0.005)
     num_epoch = 200
     for epoch in range(num_epoch):
         # mse_loss = 0

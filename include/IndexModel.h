@@ -3,6 +3,8 @@
 #include <torch/torch.h>
 #include <Eigen/Dense>
 #include <Eigen/Core>
+#include <random>
+
 #include "MetaData.h"
 #include "FileReader.h"
 #include "MetaClient.h"
