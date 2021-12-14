@@ -238,8 +238,6 @@ bool GridNode::remove(array<double, 2> &point)
     }
     else
     {
-        // int max_search_position = std::min(pre_position +
-        // index_model->error_bound[0], (int)(metadataVec.size() - 1));
         int max_search_position = prePosition + index_model->error_bound[1] > metadataVec.size() - 1
                                       ? metadataVec.size() - 1
                                       : prePosition + index_model->error_bound[1];
@@ -261,7 +259,6 @@ bool GridNode::remove(array<double, 2> &point)
         this->bufferDataSize -= deleteNumInBuffer;
     }
 
-    // build check this node in cell tree by checking num.
 }
 
 int GridNode::getKeysNum()

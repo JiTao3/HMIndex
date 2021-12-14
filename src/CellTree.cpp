@@ -142,19 +142,12 @@ void CellTree::buildTree(std::vector<std::vector<int>> cell_bound_idx, InnerNode
             int mid = (*dim_split_index.begin() + *(dim_split_index.end() - 1)) / 2;
             // get split point
             if (i == 0)
-            {
                 split_point.push_back(init_partion_bound_x[mid]);
-            }
             else if (i == 1)
-            {
                 split_point.push_back(init_partion_bound_y[mid]);
-            }
             else
-            {
                 cout << "error for multi dim" << endl;
-            }
 
-            // split each dimension
             std::vector<int> left, right;
             if (dim_split_index.size() == 2)
             {
@@ -202,7 +195,8 @@ void CellTree::buildTree(std::vector<std::vector<int>> cell_bound_idx, InnerNode
     }
 }
 
-void CellTree::buildCheck(boost::variant<InnerNode *, LeafNode *, GridNode *, int> root, int child_index)
+void CellTree::buildCheck(boost::variant<InnerNode *, LeafNode *, GridNode *, int> root, int child_index,
+                          bool openTraining)
 {
     if (root.type() == typeid(InnerNode *))
     {
@@ -386,7 +380,7 @@ void CellTree::buildCheck(boost::variant<InnerNode *, LeafNode *, GridNode *, in
             }
         }
     }
-    else if (root.type() == typeid(GridNode *))
+    else if (openTraining && root.type() == typeid(GridNode *))
     {
         GridNode *grid_node = boost::get<GridNode *>(root);
         InnerNode *parent_node = (InnerNode *)grid_node->parent;
@@ -398,6 +392,7 @@ void CellTree::buildCheck(boost::variant<InnerNode *, LeafNode *, GridNode *, in
         // 		! may be split again
 
         int metadataNumAllChildGridNode = 0;
+
         for (auto &child : parent_node->children)
         {
             if (child.type() == typeid(InnerNode *))
@@ -542,7 +537,8 @@ void CellTree::buildCheck(boost::variant<InnerNode *, LeafNode *, GridNode *, in
 
             parent_node->children[std::min(child_index, selectedGridNodeIdx)] = replaceGridNode;
             parent_node->children.erase(parent_node->children.begin() + std::max(selectedGridNodeIdx, child_index));
-            // TODO parent_node->split_point
+            parent_node->split_point.erase(parent_node->split_point.begin() +
+                                           std::max(selectedGridNodeIdx, child_index));
         }
     }
     else
@@ -580,12 +576,8 @@ void CellTree::saveSplitData(boost::variant<InnerNode *, LeafNode *, GridNode *,
 vector<array<double, 2> *> &CellTree::pointSearch(array<double, 2> &query, vector<array<double, 2> *> &result,
                                                   ExpRecorder &exp_Recorder)
 {
-    // vector<vector<double> *> result;
-    // return result;
-    // auto start_treetravel = chrono::high_resolution_clock::now();
 
     boost::variant<InnerNode *, LeafNode *, GridNode *, int> node = &this->root;
-    // exp_Recorder.pointTreeTravelTime
 
     while (node.type() == typeid(InnerNode *))
     {
@@ -595,21 +587,11 @@ vector<array<double, 2> *> &CellTree::pointSearch(array<double, 2> &query, vecto
     }
     if (node.type() == typeid(LeafNode *))
     {
-        // auto end_treetravel = chrono::high_resolution_clock::now();
-        // exp_Recorder.pointTreeTravelTime +=
-        // chrono::duration_cast<chrono::nanoseconds>(end_treetravel -
-        // start_treetravel).count();
         LeafNode *leaf_node = boost::get<LeafNode *>(node);
         return leaf_node->pointSearch(query, result, exp_Recorder);
     }
     else if (node.type() == typeid(GridNode *))
     {
-        // auto end_treetravel = chrono::high_resolution_clock::now();
-        // auto travel_timeconsume =
-        // chrono::duration_cast<chrono::nanoseconds>(end_treetravel -
-        // start_treetravel).count(); exp_Recorder.pointTreeTravelTime +=
-        // chrono::duration_cast<chrono::nanoseconds>(end_treetravel -
-        // start_treetravel).count();
         GridNode *grid_node = boost::get<GridNode *>(node);
         return grid_node->pointSearch(query, result, exp_Recorder);
     }
@@ -778,64 +760,6 @@ void CellTree::DFSCelltree(vector<double> &query, vector<array<double, 2> *> &re
             return;
         }
     }
-
-    /*
-            if (root.type() == typeid(InnerNode *))
-            {
-                    InnerNode *innernode = boost::get<InnerNode *>(root);
-                    for (auto child : innernode->children)
-                    {
-                            if (child.type() == typeid(InnerNode *))
-                            {
-                                    InnerNode *innerChild = boost::get<InnerNode
-       *>(child); int overlapFlag = queryCellRealtion(innerChild->range_bound,
-       query); if (overlapFlag == DISSOCIATION)
-                                    {
-                                            continue;
-                                    }
-                                    else if (overlapFlag == CONTAIN)
-                                    {
-                                            getAllData(innerChild, result);
-                                            return;
-                                    }
-                                    else if (overlapFlag == INTERSECTION)
-                                    {
-                                            this->DFSCelltree(query, result,
-       child);
-                                    }
-                            }
-                            else if (child.type() == typeid(LeafNode *))
-                            {
-                                    LeafNode *leafChild = boost::get<LeafNode
-       *>(child); int overlapFlag = queryCellRealtion(leafChild->range_bound,
-       query); if (overlapFlag == DISSOCIATION) continue; else if (overlapFlag ==
-       CONTAIN)
-                                    {
-                                            for (auto metadata :
-       leafChild->metadataVec) result.push_back(metadata.data);
-                                    }
-                                    else if (overlapFlag == INTERSECTION)
-                                    {
-                                            leafChild->rangeSearch(query, result);
-                                    }
-                            }
-                            else if (child.type() == typeid(GridNode *))
-                            {
-                                    GridNode *gridChild = boost::get<GridNode
-       *>(child); int overlapFlag = queryCellRealtion(gridChild->rangeBound,
-       query); if (overlapFlag == DISSOCIATION) continue; else if (overlapFlag ==
-       CONTAIN)
-                                    {
-                                            for (auto metadata :
-       gridChild->metadataVec) result.push_back(metadata.data);
-                                    }
-                                    else if (overlapFlag == INTERSECTION)
-                                    {
-                                            gridChild->rangeSearch(query, result);
-                                    }
-                            }
-                    }
-            }*/
 }
 
 void CellTree::train(boost::variant<InnerNode *, LeafNode *, GridNode *, int> root)
@@ -879,8 +803,6 @@ void CellTree::train(boost::variant<InnerNode *, LeafNode *, GridNode *, int> ro
 
 void CellTree::insert(array<double, 2> &point)
 {
-    // todo buidcheck is true
-    // todo build check the leaf/grie node
     bool buildCheck = false;
     boost::variant<InnerNode *, LeafNode *, GridNode *, int> node = &this->root;
     int child_index = 0;
@@ -896,7 +818,7 @@ void CellTree::insert(array<double, 2> &point)
         buildCheck = leaf_node->insert(point);
         if (buildCheck)
         {
-            this->buildCheck(leaf_node, child_index);
+            this->buildCheck(leaf_node, child_index, true);
         }
     }
     else if (node.type() == typeid(GridNode *))
@@ -905,13 +827,36 @@ void CellTree::insert(array<double, 2> &point)
         buildCheck = grid_node->insert(point);
         if (buildCheck)
         {
-            this->buildCheck(grid_node, child_index);
+            this->buildCheck(grid_node, child_index, true);
         }
     }
 }
 
 void CellTree::remove(array<double, 2> &point)
 {
+    bool buildCheck = false;
+    boost::variant<InnerNode *, LeafNode *, GridNode *, int> node = &this->root;
+    int child_index = 0;
+    while (node.type() == typeid(InnerNode *))
+    {
+        InnerNode *innernode = boost::get<InnerNode *>(node);
+        child_index = innernode->child_index(point);
+        node = innernode->children[child_index];
+    }
+    if (node.type() == typeid(LeafNode *))
+    {
+        LeafNode *leaf_node = boost::get<LeafNode *>(node);
+        leaf_node->remove(point);
+        if (leaf_node->getKeysNum() < removeTh)
+            this->buildCheck(leaf_node, child_index);
+    }
+    else if (node.type() == typeid(GridNode *))
+    {
+        GridNode *grid_node = boost::get<GridNode *>(node);
+        grid_node->remove(point);
+        if (grid_node->getKeysNum() < removeTh)
+            this->buildCheck(grid_node, child_index);
+    }
 }
 
 void getAllMetaData(boost::variant<InnerNode *, LeafNode *, GridNode *, int> root, vector<MetaData> &all_medata)

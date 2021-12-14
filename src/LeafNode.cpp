@@ -82,28 +82,17 @@ void LeafNode::setMapVals()
 vector<array<double, 2> *> &LeafNode::pointSearch(array<double, 2> key, std::vector<array<double, 2> *> &result,
                                                   ExpRecorder &exp_Recorder)
 {
-    // auto start_prePos = chrono::high_resolution_clock::now();
 
     MetaData meta_key(&key);
     meta_key.setMapVal(range_bound, cell_area);
     int pre_position = index_model->preFastPosition(meta_key.map_val);
-    // pre_position = std::min(pre_position, (int)(metadataVec.size() - 1));
-    // pre_position = std::max(pre_position, 0);
+
     pre_position = pre_position > metadataVec.size() - 1 ? metadataVec.size() - 1 : pre_position;
     pre_position = pre_position > 0 ? pre_position : 0;
-    // auto end_prePos = chrono::high_resolution_clock::now();
-    // exp_Recorder.pointModelPreTime
-    // +=chrono::duration_cast<chrono::nanoseconds>(end_prePos -
-    // start_prePos).count(); auto start_BinSearch =
-    // chrono::high_resolution_clock::now();
-
-    // scanbuffer
 
     double pre_map_val = metadataVec[pre_position].map_val;
     if (pre_map_val > meta_key.map_val)
     {
-        // int min_search_index = std::max(pre_position +
-        // index_model->error_bound[1], 0);
         int min_search_index =
             pre_position + index_model->error_bound[0] > 0 ? pre_position + index_model->error_bound[0] : 0;
         return bindary_search(metadataVec, metadataVecBitMap, min_search_index, pre_position, meta_key, result,
@@ -111,18 +100,12 @@ vector<array<double, 2> *> &LeafNode::pointSearch(array<double, 2> key, std::vec
     }
     else
     {
-        // int max_search_position = std::min(pre_position +
-        // index_model->error_bound[0], (int)(metadataVec.size() - 1));
         int max_search_position = pre_position + index_model->error_bound[1] > metadataVec.size() - 1
                                       ? metadataVec.size() - 1
                                       : pre_position + index_model->error_bound[1];
         return bindary_search(metadataVec, metadataVecBitMap, pre_position, max_search_position, meta_key, result,
                               exp_Recorder);
     }
-    // auto end_BinSearch = chrono::high_resolution_clock::now();
-    // exp_Recorder.pointBindarySearchTime
-    // +=chrono::duration_cast<chrono::nanoseconds>(end_BinSearch -
-    // start_BinSearch).count();
 }
 
 vector<array<double, 2> *> &LeafNode::rangeSearch(std::vector<double> query_range, vector<array<double, 2> *> &result)
@@ -175,14 +158,9 @@ vector<array<double, 2> *> &LeafNode::rangeSearch(std::vector<double> query_rang
     int pre_min_position = index_model->preFastPosition(meta_min.map_val);
     int pre_max_position = index_model->preFastPosition(meta_max.map_val);
 
-    // pre_min_position = std::max(pre_min_position, 0);
-    // pre_max_position = std::max(pre_max_position, 0);
     pre_min_position = pre_min_position > 0 ? pre_min_position : 0;
     pre_max_position = pre_max_position > 0 ? pre_max_position : 0;
 
-    // pre_min_position = std::min(pre_min_position, (int)(metadataVec.size() -
-    // 1)); pre_max_position = std::min(pre_max_position, (int)(metadataVec.size()
-    // - 1));
     pre_min_position = pre_min_position > metadataVec.size() - 1 ? metadataVec.size() - 1 : pre_min_position;
     pre_max_position = pre_max_position > metadataVec.size() - 1 ? metadataVec.size() - 1 : pre_max_position;
 
@@ -229,8 +207,33 @@ bool LeafNode::insert(array<double, 2> &point)
     // return false if not merge.
     // TODO : check can insert into the origin vector?
 
+
     MetaData insertMetadata(&point);
     insertMetadata.setMapVal(this->range_bound, this->cell_area);
+
+	int pre_position = index_model->preFastPosition(insertMetadata.map_val);
+
+    pre_position = pre_position > metadataVec.size() - 1 ? metadataVec.size() - 1 : pre_position;
+    pre_position = pre_position > 0 ? pre_position : 0;
+
+    double pre_map_val = metadataVec[pre_position].map_val;
+    if (pre_map_val > insertMetadata.map_val)
+    {
+        int min_search_index =
+            pre_position + index_model->error_bound[0] > 0 ? pre_position + index_model->error_bound[0] : 0;
+        // return bindary_search(metadataVec, metadataVecBitMap, min_search_index, pre_position, meta_key, result,
+        //                       exp_Recorder);
+    }
+    else
+    {
+        int max_search_position = pre_position + index_model->error_bound[1] > metadataVec.size() - 1
+                                      ? metadataVec.size() - 1
+                                      : pre_position + index_model->error_bound[1];
+        // return bindary_search(metadataVec, metadataVecBitMap, pre_position, max_search_position, meta_key, result,
+        //                       insertMetadata);
+    }
+
+
     bool mergeFlag = false;
     if (bufferDataSize < INSERT_BUFFERSIZE)
     {
@@ -259,16 +262,12 @@ bool LeafNode::remove(array<double, 2> &point)
 
     if (metadataVec[prePosition].map_val > deleteMetadata.map_val)
     {
-        // int min_search_index = std::max(pre_position +
-        // index_model->error_bound[1], 0);
         int min_search_index =
             prePosition + index_model->error_bound[0] > 0 ? prePosition + index_model->error_bound[0] : 0;
         deleteMetadataInRange(metadataVec, metadataVecBitMap, min_search_index, prePosition, deleteMetadata);
     }
     else
     {
-        // int max_search_position = std::min(pre_position +
-        // index_model->error_bound[0], (int)(metadataVec.size() - 1));
         int max_search_position = prePosition + index_model->error_bound[1] > metadataVec.size() - 1
                                       ? metadataVec.size() - 1
                                       : prePosition + index_model->error_bound[1];
@@ -290,7 +289,6 @@ bool LeafNode::remove(array<double, 2> &point)
         this->bufferDataSize -= deleteNumInBuffer;
     }
 
-    // build check this node in cell tree by checking num.
 }
 
 int LeafNode::getKeysNum()
