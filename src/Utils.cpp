@@ -375,6 +375,22 @@ double distFunction(array<double, 2> *point1, array<double, 2> &point2)
     return sqrt(pow(((*point1)[0] - point2[0]), 2) + pow(((*point1)[1] - point2[1]), 2));
 }
 
+bool insertMetadataInRange(vector<MetaData> &metadataVec, bitset<BITMAP_SIZE> &bitmap, int begin_idx, int end_idx,
+                           MetaData &meta_key)
+{
+    int idx = begin_idx;
+    while (metadataVec[idx].map_val < meta_key.map_val && idx <= end_idx)
+        idx++;
+    idx--;
+    if (bitmap[idx] == false)
+    {
+        metadataVec[idx]==meta_key;
+        bitset[idx] = 1;
+        return true;
+    }
+    return false;
+}
+
 bool deleteMetadataInRange(vector<MetaData> &metadataVec, bitset<BITMAP_SIZE> &bitmap, int begin_idx, int end_idx,
                            MetaData &deleteMetadata)
 {
@@ -443,10 +459,4 @@ void scanBuffer(array<MetaData, INSERT_BUFFERSIZE> &insertBuffer, int bufferData
             result.push_back(insertBuffer[i].data);
         }
     }
-}
-
-bool insertMetadataInRange(vector<MetaData> &metadataVec, bitset<BITMAP_SIZE> &bitmap, int begin_idx, int end_idx,
-                           MetaData &meta_key)
-{
-	
 }

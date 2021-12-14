@@ -207,22 +207,24 @@ bool LeafNode::insert(array<double, 2> &point)
     // return false if not merge.
     // TODO : check can insert into the origin vector?
 
-
     MetaData insertMetadata(&point);
     insertMetadata.setMapVal(this->range_bound, this->cell_area);
 
-	int pre_position = index_model->preFastPosition(insertMetadata.map_val);
+    int pre_position = index_model->preFastPosition(insertMetadata.map_val);
 
     pre_position = pre_position > metadataVec.size() - 1 ? metadataVec.size() - 1 : pre_position;
     pre_position = pre_position > 0 ? pre_position : 0;
 
     double pre_map_val = metadataVec[pre_position].map_val;
+
+    bool bindaryInsert = false;
+
     if (pre_map_val > insertMetadata.map_val)
     {
         int min_search_index =
             pre_position + index_model->error_bound[0] > 0 ? pre_position + index_model->error_bound[0] : 0;
-        // return bindary_search(metadataVec, metadataVecBitMap, min_search_index, pre_position, meta_key, result,
-        //                       exp_Recorder);
+        bindaryInsert =
+            insertMetadataInRange(metadataVec, metadataVecBitMap, min_search_index, pre_position, insertMetadata);
     }
     else
     {
@@ -231,25 +233,28 @@ bool LeafNode::insert(array<double, 2> &point)
                                       : pre_position + index_model->error_bound[1];
         // return bindary_search(metadataVec, metadataVecBitMap, pre_position, max_search_position, meta_key, result,
         //                       insertMetadata);
+        bindaryInsert =
+            insertMetadataInRange(metadataVec, metadataVecBitMap, pre_position, max_search_position, insertMetadata);
     }
-
-
     bool mergeFlag = false;
-    if (bufferDataSize < INSERT_BUFFERSIZE)
+    if (bindaryInsert)
     {
-        insertBuffer[bufferDataSize] = insertMetadata;
-        bufferDataSize++;
-        std::sort(insertBuffer.begin(), insertBuffer.begin() + bufferDataSize, compareMetadata);
-    }
-    else
-    {
-        // merge the data into metadataVec
-        for (int i = 0; i < bufferDataSize; i++)
+        if (bufferDataSize < INSERT_BUFFERSIZE)
         {
-            metadataVec.push_back(insertBuffer[i]);
+            insertBuffer[bufferDataSize] = insertMetadata;
+            bufferDataSize++;
+            std::sort(insertBuffer.begin(), insertBuffer.begin() + bufferDataSize, compareMetadata);
         }
-        mergeFlag = true;
-        bufferDataSize = 0;
+        else
+        {
+            // merge the data into metadataVec
+            for (int i = 0; i < bufferDataSize; i++)
+            {
+                metadataVec.push_back(insertBuffer[i]);
+            }
+            mergeFlag = true;
+            bufferDataSize = 0;
+        }
     }
     return mergeFlag;
 }
@@ -288,7 +293,6 @@ bool LeafNode::remove(array<double, 2> &point)
         std::sort(insertBuffer.begin(), insertBuffer.begin() + bufferDataSize, compareMetadata);
         this->bufferDataSize -= deleteNumInBuffer;
     }
-
 }
 
 int LeafNode::getKeysNum()
