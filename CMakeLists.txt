@@ -10,7 +10,7 @@ set(CUDA_TOOLKIT_ROOT_DIR ${CUDA_TOOLKIT_ROOT_DIR} "/home/jitao/nvlab/kittool")
 # set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "/home/jitao/clib/libtorch_gpu/libtorch")
 # find_package(Torch REQUIRED)
 
-# set(CMAKE_CUDA_COMPILER "/home/jitao/nvlab/cuda10_2/bin/nvcc")
+# set(CMAKE_CUDA_COMPILER "/home/jitao/nvlab/kittool/bin/nvcc")
 
 set(Torch_DIR "/home/jitao/clib/libtorch_gpu/libtorch/share/cmake/Torch")
 find_package(Torch REQUIRED)
@@ -30,13 +30,13 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/src SRC_DIR)
 add_library(ENTITY STATIC ${SRC_DIR})
 
 
-# add_executable(CellTree Exp.cpp ${SRC_DIR})
+add_executable(CellTree Exp.cpp ${SRC_DIR})
 # add_executable(CellTree_Debug Exp.cpp ${SRC_DIR})
 # add_executable(CellTree_split SplitData.cpp ${SRC_DIR})
-add_executable(test_c test.cpp ${SRC_DIR})
+# add_executable(test_c test.cpp ${SRC_DIR})
 
 
-# target_link_libraries(CellTree "${TORCH_LIBRARIES}" ENTITY)
+target_link_libraries(CellTree "${TORCH_LIBRARIES}" ENTITY)
 # target_link_libraries(CellTree_Debug "${TORCH_LIBRARIES}" ENTITY)
 # target_link_libraries(CellTree_split "${TORCH_LIBRARIES}" ENTITY)
-target_link_libraries(test_c "${TORCH_LIBRARIES}" ENTITY)
+# target_link_libraries(test_c "${TORCH_LIBRARIES}" ENTITY)
