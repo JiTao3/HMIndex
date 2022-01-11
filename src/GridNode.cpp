@@ -67,8 +67,10 @@ vector<array<double, 2> *> &GridNode::pointSearch(array<double, 2> key, vector<a
     }
 }
 
-vector<array<double, 2> *> &GridNode::rangeSearch(vector<double> query_range, vector<array<double, 2> *> &result)
+vector<array<double, 2> *> &GridNode::rangeSearch(vector<double> query_range, vector<array<double, 2> *> &result,
+                                                  ExpRecorder &exp_Recorder)
 {
+    auto start_refine = chrono::high_resolution_clock::now();
     double *min_range = new double[MetaData::dim];
     double *max_range = new double[MetaData::dim];
     for (int i = 0; i < MetaData::dim; i++)
@@ -128,8 +130,15 @@ vector<array<double, 2> *> &GridNode::rangeSearch(vector<double> query_range, ve
 
     pre_min_position = adjustPosition(metadataVec, index_model->error_bound, pre_min_position, meta_min, -1);
     pre_max_position = adjustPosition(metadataVec, index_model->error_bound, pre_max_position, meta_max, 1);
+
+    auto end_refine = chrono::high_resolution_clock::now();
+    exp_Recorder.rangeRefinementTime += chrono::duration_cast<chrono::nanoseconds>(end_refine - start_refine).count();
+
+    auto start_scan = chrono::high_resolution_clock::now();
     scan(metadataVec, pre_min_position, pre_max_position, min_range, max_range, result);
     scanBuffer(insertBuffer, bufferDataSize, min_range, max_range, result);
+    auto end_scan = chrono::high_resolution_clock::now();
+    exp_Recorder.rangeScanTime += chrono::duration_cast<chrono::nanoseconds>(end_scan - start_scan).count();
 
     delete[] min_range;
     delete[] max_range;
@@ -187,7 +196,7 @@ void GridNode::saveMetaDataVectoCSV(string file_path)
 void GridNode::initialBitMap()
 {
     this->metadataVecBitMap.reset();
-    for (int i = 0; i < metadataVec.size(); i++)
+    for (int i = 0; i < metadataVec.size() && i < BITMAP_SIZE; i++)
     {
         this->metadataVecBitMap[i] = 1;
     }
@@ -258,7 +267,6 @@ bool GridNode::remove(array<double, 2> &point)
         std::sort(insertBuffer.begin(), insertBuffer.begin() + bufferDataSize, compareMetadata);
         this->bufferDataSize -= deleteNumInBuffer;
     }
-
 }
 
 int GridNode::getKeysNum()

@@ -7,7 +7,7 @@ import numpy as np
 
 from torch.multiprocessing import Pool, Process, set_start_method
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 
 
 class IndexDataSet(Dataset):
@@ -173,25 +173,35 @@ if __name__ == "__main__":
     # osm_ne_us_save_random_path = (
     #     "/data/jitao/dataset/OSM/random_trained_model_param_for_split2/"
     # )
+    tiger_model_param_path = "/data/jitao/dataset/Tiger/initial_model_param_for_split/"
+    tiger_raw_data_path = "/data/jitao/dataset/Tiger/split/"
+    tiger_ne_us_save_path = "/data/jitao/dataset/Tiger/trained_modelParam_for_split/"
 
+    uniform_model_param_path = "/data/jitao/dataset/uniform/initial_model_param_for_split/"
+    uniform_raw_data_path = "/data/jitao/dataset/uniform/split/"
+    uniform_save_path = "/data/jitao/dataset/uniform/trained_modelParam_for_split/"
 
-    data_name_list = os.listdir(osm_cn_raw_data_path)
+    skewed_model_param_path = "/data/jitao/dataset/skewed/initial_model_param_for_split/"
+    skewed_raw_data_path = "/data/jitao/dataset/skewed/split/"
+    skewed_save_path = "/data/jitao/dataset/skewed/trained_modelParam_for_split/"
+
+    data_name_list = os.listdir(skewed_raw_data_path)
     training_pool = Pool(20)
     for index, data_name in enumerate(data_name_list):
         training_pool.apply_async(
-            trainRandomInitialModle,
-            (
-                osm_cn_raw_data_path + data_name,
-                osm_cn_save_random_path + data_name,
-                index,
-            ),
-            # trainMetaParam,
+            # trainRandomInitialModle,
             # (
-            #     model_param_path + data_name,
-            #     raw_data_path + data_name,
-            #     save_path + data_name,
+            #     osm_cn_raw_data_path + data_name,
+            #     osm_cn_save_random_path + data_name,
             #     index,
             # ),
+            trainMetaParam,
+            (
+                skewed_model_param_path + data_name,
+                skewed_raw_data_path + data_name,
+                skewed_save_path + data_name,
+                index, 
+            ),
         )
     training_pool.close()
     training_pool.join()
@@ -199,3 +209,5 @@ if __name__ == "__main__":
 
 # nohup python train.py > ../log/OSM_US_NE_trained_modelParam_for_split.log 2>&1 &
 # nohup python train.py > ../log/OSM_CN_random_modelParam_for_split.log 2>&1 &
+# nohup python train.py > ../log/tiger_meta_modelParam_for_split.log 2>&1 &
+# nohup python train.py > ../log/skewed_meta_modelParam_for_split.log 2>&1 &

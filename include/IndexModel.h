@@ -77,6 +77,7 @@ class IndexModel
     }
 
     IndexModel(std::vector<MetaData> *metadataVec);
+    IndexModel(std::vector<MetaData> &metadataVec);
     IndexModel(std::vector<double> &mapvalvec);
     ~IndexModel();
 

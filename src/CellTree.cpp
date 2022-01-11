@@ -600,11 +600,15 @@ vector<array<double, 2> *> &CellTree::pointSearch(array<double, 2> &query, vecto
 vector<array<double, 2> *> &CellTree::rangeSearch(vector<double> &query, vector<array<double, 2> *> &result,
                                                   ExpRecorder &exp_Recorder)
 {
-    this->DFSCelltree(query, result, &this->root);
+    auto start_range = chrono::high_resolution_clock::now();
+    this->DFSCelltree(query, result, &this->root, exp_Recorder);
+    auto end_range = chrono::high_resolution_clock::now();
+    exp_Recorder.rangeTotalTime = chrono::duration_cast<chrono::nanoseconds>(end_range - start_range).count();
     return result;
 }
 
-vector<array<double, 2> *> &CellTree::kNNSearch(array<double, 2> &query, int k, vector<array<double, 2> *> &result)
+vector<array<double, 2> *> &CellTree::kNNSearch(array<double, 2> &query, int k, vector<array<double, 2> *> &result,
+                                                ExpRecorder &exp_Recorder)
 {
     boost::variant<InnerNode *, LeafNode *, GridNode *, int> node = &this->root;
     double cellArea = 0.0;
@@ -673,7 +677,7 @@ vector<array<double, 2> *> &CellTree::kNNSearch(array<double, 2> &query, int k, 
     {
         vector<double> range_query = {query[0] - range_R, query[0] + range_R, query[1] - range_R, query[1] + range_R};
         temp_result.clear();
-        this->DFSCelltree(range_query, temp_result, &this->root);
+        this->DFSCelltree(range_query, temp_result, &this->root, exp_Recorder);
         if (temp_result.size() > k)
         {
             sort(temp_result.begin(), temp_result.end(), sortForKNN(query));
@@ -691,7 +695,7 @@ vector<array<double, 2> *> &CellTree::kNNSearch(array<double, 2> &query, int k, 
 }
 
 void CellTree::DFSCelltree(vector<double> &query, vector<array<double, 2> *> &result,
-                           boost::variant<InnerNode *, LeafNode *, GridNode *, int> root)
+                           boost::variant<InnerNode *, LeafNode *, GridNode *, int> root, ExpRecorder &exp_Recorder)
 {
     /*
             get overlap flag
@@ -721,7 +725,7 @@ void CellTree::DFSCelltree(vector<double> &query, vector<array<double, 2> *> &re
         else if (overlapFlag == INTERSECTION)
         {
             for (auto child : innernode->children)
-                this->DFSCelltree(query, result, child);
+                this->DFSCelltree(query, result, child, exp_Recorder);
         }
     }
     else if (root.type() == typeid(LeafNode *))
@@ -738,7 +742,7 @@ void CellTree::DFSCelltree(vector<double> &query, vector<array<double, 2> *> &re
         }
         else if (overlapFlag == INTERSECTION)
         {
-            leafnode->rangeSearch(query, result);
+            leafnode->rangeSearch(query, result, exp_Recorder);
             return;
         }
     }
@@ -756,7 +760,7 @@ void CellTree::DFSCelltree(vector<double> &query, vector<array<double, 2> *> &re
         }
         else if (overlapFlag == INTERSECTION)
         {
-            gridnode->rangeSearch(query, result);
+            gridnode->rangeSearch(query, result, exp_Recorder);
             return;
         }
     }
@@ -790,7 +794,7 @@ void CellTree::train(boost::variant<InnerNode *, LeafNode *, GridNode *, int> ro
         GridNode *node = boost::get<GridNode *>(root);
         cout << "grid node index :" << TRAIN_LEAF_NODE_NUM;
         node->index_model->loadParameter(this->modelParamPath + to_string(TRAIN_LEAF_NODE_NUM++) + ".csv");
-        // node->index_model->buildModel();
+        // node->index_model->buildModel();zaCVb
         node->index_model->getErrorBound();
         cout << "; node error bound: " << node->index_model->error_bound[0] << ", " << node->index_model->error_bound[1]
              << " ; node key conter :" << node->getKeysNum() << endl;

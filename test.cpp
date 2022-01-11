@@ -24,10 +24,10 @@ void testLeafNode()
     }
     vector<double> range_bound = {126.543, 126.74, 44.2496, 44.3546}; // 126.543,44.2756
     LeafNode *leafnode = new LeafNode(metadataVec, range_bound);
-    // leafnode->index_model->loadParameter("/data/jitao/dataset/OSM/new_trained_model_param_for_split2/9387.csv");
+    leafnode->index_model->loadParameter("/data/jitao/dataset/OSM/new_trained_model_param_for_split2/9387.csv");
     leafnode->index_model->buildModel();
     // leafnode->index_model->getParamFromScoket(12333);
-    // leafnode->index_model->getErrorBound();
+    leafnode->index_model->getErrorBound();
     vector<double> query = {126.543 - 0.01, 126.543 + 0.01, 44.2756 - 0.01, 44.2756 + 0.01};
     vector<array<double, 2> *> result;
     double min_range[2] = {126.543 - 0.01, 44.2756 - 0.01};
@@ -57,6 +57,6 @@ void test_gpu()
 
 int main()
 {
+    test_gpu();
     testLeafNode();
-    // test_gpu();
 }

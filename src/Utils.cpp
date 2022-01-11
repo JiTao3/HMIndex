@@ -384,8 +384,8 @@ bool insertMetadataInRange(vector<MetaData> &metadataVec, bitset<BITMAP_SIZE> &b
     idx--;
     if (bitmap[idx] == false)
     {
-        metadataVec[idx]==meta_key;
-        bitset[idx] = 1;
+        metadataVec[idx]=meta_key;
+        bitmap[idx] = 1;
         return true;
     }
     return false;

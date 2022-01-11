@@ -37,6 +37,17 @@ IndexModel::IndexModel(std::vector<MetaData> *metadataVec)
 	// orderMetaData();
 }
 
+IndexModel::IndexModel(std::vector<MetaData> &metadataVec)
+{
+	for (auto& meta_data : metadataVec)
+	{
+		this->mapValVec.push_back(meta_data.map_val);
+	}
+
+	nnModel = new NNModel(1, 100, 1);
+}
+
+
 IndexModel::IndexModel(std::vector<double> &mapvalvec)
 {
 	this->mapValVec = mapvalvec;
@@ -85,7 +96,7 @@ void IndexModel::getErrorBound()
 	torch::NoGradGuard no_grad;
 
 	auto data_set = NNDataSet(this->mapValVec).map(torch::data::transforms::Stack<>());
-	auto data_loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(std::move(data_set), torch::data::DataLoaderOptions().batch_size(5000).workers(2));
+	auto data_loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(std::move(data_set), torch::data::DataLoaderOptions().batch_size(5000).workers(4));
 
 	double up_error = 0.0;
 	double down_error = 0.0;

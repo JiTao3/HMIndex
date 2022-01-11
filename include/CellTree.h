@@ -38,7 +38,7 @@ class CellTree
     int cellSplitTh = 50000;
     int gridSplitTh = 15000;
     int mergeTh = 5000;
-	int removeTh = 4000;
+    int removeTh = 4000;
 
     int modelCapability = 10000;
 
@@ -69,9 +69,10 @@ class CellTree
                                             ExpRecorder &exp_Recorder);
     vector<array<double, 2> *> &rangeSearch(vector<double> &query, vector<array<double, 2> *> &result,
                                             ExpRecorder &exp_Recorder);
-    vector<array<double, 2> *> &kNNSearch(array<double, 2> &query, int k, vector<array<double, 2> *> &result);
+    vector<array<double, 2> *> &kNNSearch(array<double, 2> &query, int k, vector<array<double, 2> *> &result,
+                                          ExpRecorder &exp_Recorder);
     void DFSCelltree(vector<double> &query, vector<array<double, 2> *> &result,
-                     boost::variant<InnerNode *, LeafNode *, GridNode *, int> root);
+                     boost::variant<InnerNode *, LeafNode *, GridNode *, int> root, ExpRecorder &exp_Recorder);
     void train(boost::variant<InnerNode *, LeafNode *, GridNode *, int> root);
 
     void insert(array<double, 2> &point);

@@ -27,7 +27,7 @@ LeafNode::LeafNode(std::vector<MetaData> &_metadatas, std::vector<double> _range
         mapvalBound[1] = 0.0;
     }
     this->initialBitMap();
-    index_model = new IndexModel(&metadataVec);
+    index_model = new IndexModel(this->metadataVec);
     // index_model->buildModel();
 }
 
@@ -108,8 +108,10 @@ vector<array<double, 2> *> &LeafNode::pointSearch(array<double, 2> key, std::vec
     }
 }
 
-vector<array<double, 2> *> &LeafNode::rangeSearch(std::vector<double> query_range, vector<array<double, 2> *> &result)
+vector<array<double, 2> *> &LeafNode::rangeSearch(std::vector<double> query_range, vector<array<double, 2> *> &result,
+                                                  ExpRecorder &exp_Recorder)
 {
+    auto start_refine = chrono::high_resolution_clock::now();
     double *min_range = new double[MetaData::dim];
     double *max_range = new double[MetaData::dim];
     for (int i = 0; i < MetaData::dim; i++)
@@ -166,9 +168,17 @@ vector<array<double, 2> *> &LeafNode::rangeSearch(std::vector<double> query_rang
 
     pre_min_position = adjustPosition(metadataVec, index_model->error_bound, pre_min_position, meta_min, -1);
     pre_max_position = adjustPosition(metadataVec, index_model->error_bound, pre_max_position, meta_max, 1);
+
+    auto end_refine = chrono::high_resolution_clock::now();
+    exp_Recorder.rangeRefinementTime += chrono::duration_cast<chrono::nanoseconds>(end_refine - start_refine).count();
+
+    auto start_scan = chrono::high_resolution_clock::now();
     scan(metadataVec, pre_min_position, pre_max_position, min_range, max_range, result);
     // ! scanBuffer
     scanBuffer(insertBuffer, bufferDataSize, min_range, max_range, result);
+    auto end_scan = chrono::high_resolution_clock::now();
+    exp_Recorder.rangeScanTime += chrono::duration_cast<chrono::nanoseconds>(end_scan - start_scan).count();
+    
 
     delete[] min_range;
     delete[] max_range;
@@ -195,7 +205,7 @@ void LeafNode::saveMetaDataVectoCSV(string file_path)
 void LeafNode::initialBitMap()
 {
     this->metadataVecBitMap.reset();
-    for (int i = 0; i < metadataVec.size(); i++)
+    for (int i = 0; i < metadataVec.size() && i < BITMAP_SIZE; i++)
     {
         this->metadataVecBitMap[i] = 1;
     }
@@ -205,7 +215,7 @@ bool LeafNode::insert(array<double, 2> &point)
 {
     // return ture if merge then in cell tree check the leaf node
     // return false if not merge.
-    // TODO : check can insert into the origin vector?
+    // // TODO : check can insert into the origin vector?
 
     MetaData insertMetadata(&point);
     insertMetadata.setMapVal(this->range_bound, this->cell_area);
