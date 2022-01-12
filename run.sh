@@ -15,5 +15,16 @@
 # nohup ./build/CellTree /data/jitao/dataset/OSM/osm.csv /data/jitao/dataset/OSM/point_query_sample_10w.csv /data/jitao/dataset/OSM/trained_modelParam_for_split2/ > log/osm_cn_v2.log 2>&1 &
 # nohup ./build/CellTree /data/jitao/dataset/OSM_US_NE/20_outliers_lon_lat.csv /data/jitao/dataset/OSM_US_NE/point_query_sample_10w.csv /data/jitao/dataset/OSM_US_NE/trained_modelParam_for_split/ > log/osm_us_ne_pointv3.log 2>&1 &
 # nohup ./build/CellTree /data/jitao/dataset/uniform/2d_len_1e8_seed_1.csv /data/jitao/dataset/uniform/point_query_sample_10w.csv /data/jitao/dataset/uniform/trained_modelParam_for_split/ > log/uniform_v3.log 2>&1 &
-nohup ./build/CellTree /data/jitao/dataset/skewed/2d_len_1e8_seed_1.csv /data/jitao/dataset/skewed/point_query_sample_10w.csv /data/jitao/dataset/skewed/trained_modelParam_for_split/ > log/skewed_fix_v8.log 2>&1 &
+# nohup ./build/CellTree /data/jitao/dataset/skewed/2d_len_1e8_seed_1.csv /data/jitao/dataset/skewed/point_query_sample_10w.csv /data/jitao/dataset/skewed/trained_modelParam_for_split/ > log/skewed_fix_v8.log 2>&1 &
 # nohup ./build/CellTree /data/jitao/dataset/Tiger/center_tiger_east_17m.txt /data/jitao/dataset/Tiger/point_query_sample_10w.csv /data/jitao/dataset/Tiger/trained_modelParam_for_split/ > log/tiger_point_v3.log 2>&1 &
+
+
+# * rang search
+# * windows size [0.0001, 0.0025, 0.01, 0.04, 0.16]
+# * aspect raido [0.25, 0.5, 1, 2, 4 ]
+# !!! 实验顺序：先遍历window size 再遍历 aspect radio
+nohup ./build/CellTree osm_cn 0.0001 0.25 >> log/range/osm_cn_v1.log 2>&1 &
+nohup ./build/CellTree uniform 0.0001 0.25 >> log/range/uniform_v1.log 2>&1 &
+nohup ./build/CellTree skewed 0.0001 0.25 >> log/range/skewed.log 2>&1 &
+nohup ./build/CellTree osm_ne_us 0.0001 0.25 >> log/range/osm_ne_us_v1.log 2>&1 &
+nohup ./build/CellTree tiger 0.0001 0.25 >> log/range/tiger_v1.log 2>&1 &

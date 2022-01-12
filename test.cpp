@@ -37,7 +37,7 @@ void testLeafNode()
 
     cout << "model error:" << leafnode->index_model->error_bound[0] << " " << leafnode->index_model->error_bound[1]
          << endl;
-    leafnode->rangeSearch(query, result);
+    // leafnode->rangeSearch(query, result, exp_);
     cout << result.size() << endl;
 }
 

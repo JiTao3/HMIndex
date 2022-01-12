@@ -14,12 +14,13 @@ public:
     long pointModelPreTime = 0;
     long pointBindarySearchTime = 0;
 
+    int rangeQuerySize = 1;
     long rangeTotalTime = 0;
     long rangeLookUpTime = 0;
     long rangeRefinementTime = 0;
     long rangeScanTime = 0;
 
-    void printRangeQuery();
+    void printRangeQuery(int);
     void cleanRangeQuery();
 
     ExpRecorder(/* args */);

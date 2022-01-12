@@ -12,13 +12,13 @@ ExpRecorder::~ExpRecorder()
 {
 }
 
-void ExpRecorder::printRangeQuery()
+void ExpRecorder::printRangeQuery(int rangeQuerySize)
 {
-    cout << "range query total time" << this->rangeTotalTime << "ns" << endl;
+    cout << "range query total time： " << this->rangeTotalTime / rangeQuerySize << " ns per query" << endl;
     this->rangeLookUpTime = this->rangeTotalTime - this->rangeRefinementTime - this->rangeScanTime;
-    cout << "range query lookup time: " << this->rangeLookUpTime << "ns" << endl;
-    cout << "range query lookup time: " << this->rangeRefinementTime << "ns" << endl;
-    cout << "range query lookup time: " << this->rangeScanTime << "ns" << endl;
+    cout << "range query lookup time: " << this->rangeLookUpTime / rangeQuerySize << " ns per query" << endl;
+    cout << "range query lookup time: " << this->rangeRefinementTime / rangeQuerySize << " ns per query" << endl;
+    cout << "range query lookup time: " << this->rangeScanTime / rangeQuerySize << " ns per query" << endl;
 }
 
 void ExpRecorder::cleanRangeQuery()

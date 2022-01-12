@@ -26,6 +26,7 @@ void CellTree::loadRawData(string file_path)
 {
     FileReader filereader(file_path, ",");
     raw_data = filereader.get_array_points(file_path, ",");
+    cout << "raw data size: " << raw_data.size() << endl;
 }
 
 void CellTree::initialPartionBound(int n)
@@ -120,7 +121,7 @@ void CellTree::buildTree(std::vector<std::vector<int>> cell_bound_idx, InnerNode
     {
         vector<double> cell_bound = root_node->range_bound;
         vector<MetaData> medata_vec = this->initial_partition_data[cell_bound_idx[0][0]][cell_bound_idx[1][0]];
-        cout << "metadata num: " << medata_vec.size() << endl;
+        // cout << "metadata num: " << medata_vec.size() << endl;
         InnerNode *parent_node = root_node->parent;
 
         LeafNode *leaf_node = new LeafNode(medata_vec, cell_bound);
@@ -603,7 +604,7 @@ vector<array<double, 2> *> &CellTree::rangeSearch(vector<double> &query, vector<
     auto start_range = chrono::high_resolution_clock::now();
     this->DFSCelltree(query, result, &this->root, exp_Recorder);
     auto end_range = chrono::high_resolution_clock::now();
-    exp_Recorder.rangeTotalTime = chrono::duration_cast<chrono::nanoseconds>(end_range - start_range).count();
+    exp_Recorder.rangeTotalTime += chrono::duration_cast<chrono::nanoseconds>(end_range - start_range).count();
     return result;
 }
 
@@ -780,24 +781,24 @@ void CellTree::train(boost::variant<InnerNode *, LeafNode *, GridNode *, int> ro
     {
         // load model initial parameter
         LeafNode *node = boost::get<LeafNode *>(root);
-        cout << "leaf node index :" << TRAIN_LEAF_NODE_NUM;
+        // cout << "leaf node index :" << TRAIN_LEAF_NODE_NUM;
         node->index_model->loadParameter(this->modelParamPath + to_string(TRAIN_LEAF_NODE_NUM++) + ".csv");
         // this->train_pool->submit(node->index_model->buildModel(), );
         // node->index_model->buildModel();
         node->index_model->getErrorBound();
-        cout << "; node error bound: " << node->index_model->error_bound[0] << ", " << node->index_model->error_bound[1]
-             << " ; node key conter :" << node->getKeysNum() << endl;
+        // cout << "; node error bound: " << node->index_model->error_bound[0] << ", " << node->index_model->error_bound[1]
+        //      << " ; node key conter :" << node->getKeysNum() << endl;
     }
     else if (root.type() == typeid(GridNode *))
     {
         // load model initial parameter
         GridNode *node = boost::get<GridNode *>(root);
-        cout << "grid node index :" << TRAIN_LEAF_NODE_NUM;
+        // cout << "grid node index :" << TRAIN_LEAF_NODE_NUM;
         node->index_model->loadParameter(this->modelParamPath + to_string(TRAIN_LEAF_NODE_NUM++) + ".csv");
         // node->index_model->buildModel();zaCVb
         node->index_model->getErrorBound();
-        cout << "; node error bound: " << node->index_model->error_bound[0] << ", " << node->index_model->error_bound[1]
-             << " ; node key conter :" << node->getKeysNum() << endl;
+        // cout << "; node error bound: " << node->index_model->error_bound[0] << ", " << node->index_model->error_bound[1]
+        //      << " ; node key conter :" << node->getKeysNum() << endl;
     }
     else
     {
