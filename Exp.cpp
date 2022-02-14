@@ -11,6 +11,7 @@ int split_num = 100;
 // vector<double> data_space_bound = {-90.3100275, -64.566563, 17.627786999999994, 47.457235};//Tiger
 
 vector<double> data_space_bound = {0, 1, 0, 1}; //
+string knnN[5] = {"1", "5", "25", "125", "625"};
 
 // void genCellTree(string, string);
 void expSplitDataSave(string, string);
@@ -19,11 +20,11 @@ void expPointSearch(string, string, string);
 
 void expRangeSearch(string, string, string);
 
-void expkNNSearch(string, string, int);
+void expkNNSearch(string);
 
 int main(int argc, char *argv[])
 {
-    // cout << argv[1] << endl;
+    cout << argv[1] << endl;
     // cout << argv[2] << endl;
     // cout << argv[3] << endl;
     // string s1 = "/data/jitao/dataset/OSM/osm.csv";
@@ -33,13 +34,13 @@ int main(int argc, char *argv[])
 
     // expPointSearch(argv[1], argv[2], argv[3]);
     // expPointSearch(s1, s2);
-    string s1 = "osm_ne_us";
-    string s2 = "0.0001";
-    string s3 = "0.25";
+    // string s1 = "osm_ne_us";
+    // string s2 = "0.0001";
+    // string s3 = "0.25";
     // expRangeSearch(argv[1], argv[2], argv[3]);
-    expRangeSearch(s1, s2, s3);
+    // expRangeSearch(s1, s2, s3);
 
-    // expkNNSearch(s1, s2, 10);
+    expkNNSearch(argv[1]);
     // cout << "finish!" << endl;
 }
 
@@ -153,7 +154,7 @@ void expRangeSearch(string dataset, string windowSize, string aspectRadio)
     }
     else if (dataset == "tiger")
     {
-        range_split_num= 40;
+        range_split_num = 40;
         data_space_bound = {-90.3100275, -64.566563, 17.627786999999994, 47.457235};
         csv_path = "/data/jitao/dataset/Tiger/center_tiger_east_17m.txt";
         model_param_path = "/data/jitao/dataset/Tiger/trained_modelParam_for_split/";
@@ -205,8 +206,58 @@ void expRangeSearch(string dataset, string windowSize, string aspectRadio)
     cout << "--------------end------------------" << endl << endl << endl;
 }
 
-void expkNNSearch(string csv_path, string model_param_path, int k)
+void expkNNSearch(string dataset)
 {
+    string csv_path;
+    string model_param_path;
+    vector<array<double, 2>> queryPoints;
+    FileReader *knnQueryFileReader = new FileReader();
+    int range_split_num = 100;
+    if (dataset == "uniform")
+    {
+        data_space_bound = {0, 1, 0, 1};
+        csv_path = "/data/jitao/dataset/uniform/2d_len_1e8_seed_1.csv";
+        model_param_path = "/data/jitao/dataset/uniform/trained_modelParam_for_split/";
+        queryPoints =
+            knnQueryFileReader->get_array_points("/data/jitao/dataset/uniform/point_query_sample_10w.csv", ",");
+    }
+    else if (dataset == "skewed")
+    {
+        data_space_bound = {0, 1, 0, 1};
+        csv_path = "/data/jitao/dataset/skewed/2d_len_1e8_seed_1.csv";
+        model_param_path = "/data/jitao/dataset/skewed/trained_modelParam_for_split/";
+        queryPoints =
+            knnQueryFileReader->get_array_points("/data/jitao/dataset/skewed/point_query_sample_10w.csv", ",");
+    }
+    else if (dataset == "osm_cn")
+    {
+        data_space_bound = {70.9825433, 142.2560836, 4.999728700, 54.35880621};
+        csv_path = "/data/jitao/dataset/OSM/osm.csv";
+        model_param_path = "/data/jitao/dataset/OSM/trained_modelParam_for_split2/";
+        queryPoints = knnQueryFileReader->get_array_points("/data/jitao/dataset/OSM/point_query_sample_10w.csv", ",");
+    }
+    else if (dataset == "osm_ne_us")
+    {
+        data_space_bound = {-81.79535869999985, -65.27891709999955, 38.43836500000005, 45.98917950000055};
+        csv_path = "/data/jitao/dataset/OSM_US_NE/20_outliers_lon_lat.csv";
+        model_param_path = "/data/jitao/dataset/OSM_US_NE/trained_modelParam_for_split/";
+        queryPoints =
+            knnQueryFileReader->get_array_points("/data/jitao/dataset/OSM_US_NE/point_query_sample_10w.csv", ",");
+    }
+    else if (dataset == "tiger")
+    {
+        range_split_num = 40;
+        data_space_bound = {-90.3100275, -64.566563, 17.627786999999994, 47.457235};
+        csv_path = "/data/jitao/dataset/Tiger/center_tiger_east_17m.txt";
+        model_param_path = "/data/jitao/dataset/Tiger/trained_modelParam_for_split/";
+        queryPoints = knnQueryFileReader->get_array_points("/data/jitao/dataset/Tiger/point_query_sample_10w.csv", ",");
+    }
+    else
+    {
+        cout << dataset << ": error distribution";
+        return;
+    }
+
     string raw_data_path = csv_path;
     cout << "raw data path: " << raw_data_path << endl;
     CellTree *cell_tree = new CellTree(split_num, data_space_bound, raw_data_path);
@@ -225,22 +276,24 @@ void expkNNSearch(string csv_path, string model_param_path, int k)
     cell_tree->train(&cell_tree->root);
     cout << "train fiish" << endl;
 
-    // cell_tree->pointSearch();
-    cout << "read query data" << endl;
-    FileReader *pointQueryFileReader = new FileReader();
-    vector<array<double, 2>> queryPoints =
-        pointQueryFileReader->get_array_points("/data/jitao/dataset/OSM/point_query_sample_10w.csv", ",");
-    cout << "read finish： " << queryPoints.size() << endl;
-    long timeconsume = 0;
-    cout << k << "NN search" << endl;
+    // cout << k << "NN search" << endl;
     ExpRecorder *exp_Recorder = new ExpRecorder();
-    for (auto &query_point : queryPoints)
+    for (auto &n : knnN)
     {
+        long timeconsume = 0;
+        int k = atoi(n.c_str());
+        cout << "-------------------- start query * " << k << " * ---------------------" << endl;
         vector<array<double, 2> *> result;
-        auto start_t = chrono::high_resolution_clock::now();
-        cell_tree->kNNSearch(query_point, k, result, *exp_Recorder);
-        auto end_t = chrono::high_resolution_clock::now();
-        timeconsume += chrono::duration_cast<chrono::nanoseconds>(end_t - start_t).count();
+        for (auto queryPoint : queryPoints)
+        {
+            auto start_t = chrono::high_resolution_clock::now();
+            cell_tree->kNNSearch(queryPoint, k, result, *exp_Recorder);
+            auto end_t = chrono::high_resolution_clock::now();
+            timeconsume += chrono::duration_cast<chrono::nanoseconds>(end_t - start_t).count();
+        }
+        cout << "KNN K: " << k << "time consumption : " << timeconsume / queryPoints.size() << "ns per point query"
+             << endl;
+        cout << "average range query times: " << exp_Recorder->knnRangeQueryConterAvg / queryPoints.size() << endl;
+        cout << "-------------------- end query * " << k << " * ---------------------" << endl;
     }
-    cout << "time consumption : " << timeconsume / queryPoints.size() << "ns per point query" << endl;
 }

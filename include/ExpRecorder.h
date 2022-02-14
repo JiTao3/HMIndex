@@ -20,6 +20,8 @@ public:
     long rangeRefinementTime = 0;
     long rangeScanTime = 0;
 
+    double knnRangeQueryConterAvg = 0.0;
+
     void printRangeQuery(int);
     void cleanRangeQuery();
 

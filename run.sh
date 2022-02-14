@@ -23,8 +23,45 @@
 # * windows size [0.0001, 0.0025, 0.01, 0.04, 0.16]
 # * aspect raido [0.25, 0.5, 1, 2, 4 ]
 # !!! 实验顺序：先遍历window size 再遍历 aspect radio
-nohup ./build/CellTree osm_cn 0.0001 0.25 >> log/range/osm_cn_v1.log 2>&1 &
-nohup ./build/CellTree uniform 0.0001 0.25 >> log/range/uniform_v1.log 2>&1 &
-nohup ./build/CellTree skewed 0.0001 0.25 >> log/range/skewed.log 2>&1 &
-nohup ./build/CellTree osm_ne_us 0.0001 0.25 >> log/range/osm_ne_us_v1.log 2>&1 &
-nohup ./build/CellTree tiger 0.0001 0.25 >> log/range/tiger_v1.log 2>&1 &
+# nohup ./build/CellTree osm_cn 0.16 0.25 >> log/range/osm_cn_v1.log 2>&1 &
+# nohup ./build/CellTree uniform 0.16 0.25 >> log/range/uniform_v1.log 2>&1 &
+# nohup ./build/CellTree skewed 0.16 0.25 >> log/range/skewed.log 2>&1 &
+# nohup ./build/CellTree osm_ne_us 0.16 0.25 >> log/range/osm_ne_us_v1.log 2>&1 &
+# nohup ./build/CellTree tiger 0.16 0.25 >> log/range/tiger_v1.log 2>&1 &
+
+# ./build/CellTree osm_cn 0.0001 4 >> log/range/osm_cn_v1.log  && \
+# ./build/CellTree uniform 0.0001 4 >> log/range/uniform_v1.log  && \
+# ./build/CellTree skewed 0.0001 4 >> log/range/skewed.log  && \
+# ./build/CellTree osm_ne_us 0.0001 4 >> log/range/osm_ne_us_v1.log  && \
+# ./build/CellTree tiger 0.0001 4 >> log/range/tiger_v1.log && \
+
+# ./build/CellTree osm_cn 0.0025 4 >> log/range/osm_cn_v1.log  && \
+# ./build/CellTree uniform 0.0025 4 >> log/range/uniform_v1.log  && \
+# ./build/CellTree skewed 0.0025 4 >> log/range/skewed.log  && \
+# ./build/CellTree osm_ne_us 0.0025 4 >> log/range/osm_ne_us_v1.log  && \
+# ./build/CellTree tiger 0.0025 4 >> log/range/tiger_v1.log && \
+
+# ./build/CellTree osm_cn 0.01 4 >> log/range/osm_cn_v1.log  && \
+# ./build/CellTree uniform 0.01 4 >> log/range/uniform_v1.log  && \
+# ./build/CellTree skewed 0.01 4 >> log/range/skewed.log  && \
+# ./build/CellTree osm_ne_us 0.01 4 >> log/range/osm_ne_us_v1.log  && \
+# ./build/CellTree tiger 0.01 4 >> log/range/tiger_v1.log && \
+
+# ./build/CellTree osm_cn 0.04 4 >> log/range/osm_cn_v1.log  && \
+# ./build/CellTree uniform 0.04 4 >> log/range/uniform_v1.log  && \
+# ./build/CellTree skewed 0.04 4 >> log/range/skewed.log  && \
+# ./build/CellTree osm_ne_us 0.04 4 >> log/range/osm_ne_us_v1.log  && \
+# ./build/CellTree tiger 0.04 4 >> log/range/tiger_v1.log && \
+
+# ./build/CellTree osm_cn 0.16 4 >> log/range/osm_cn_v1.log  && \
+# ./build/CellTree uniform 0.16 4 >> log/range/uniform_v1.log  && \
+# ./build/CellTree skewed 0.16 4 >> log/range/skewed.log  && \
+# ./build/CellTree osm_ne_us 0.16 4 >> log/range/osm_ne_us_v1.log  && \
+# ./build/CellTree tiger 0.16 4 >> log/range/tiger_v1.log 
+
+
+./build/CellTree osm_cn >> log/knn/osm_cn_v1.log  && \
+./build/CellTree uniform >> log/knn/uniform_v1.log  && \
+./build/CellTree skewed >> log/knn/skewed.log  && \
+./build/CellTree osm_ne_us >> log/knn/osm_ne_us_v1.log  && \
+./build/CellTree tiger >> log/knn/tiger_v1.log 

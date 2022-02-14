@@ -6,6 +6,7 @@ ExpRecorder::ExpRecorder(/* args */)
     pointTreeTravelTime = 0;
     pointModelPreTime = 0;
     pointBindarySearchTime = 0;
+    knnRangeQueryConterAvg = 0;
 }
 
 ExpRecorder::~ExpRecorder()

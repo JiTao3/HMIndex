@@ -686,12 +686,15 @@ vector<array<double, 2> *> &CellTree::kNNSearch(array<double, 2> &query, int k, 
             {
                 result.push_back(temp_result[i]);
             }
+
             break;
         }
         num_range_query++;
+        // cout << "range query times: " << num_range_query << endl;
         range_R *= 2;
     }
-    cout << "query" << num_range_query << endl;
+    exp_Recorder.knnRangeQueryConterAvg += (double)num_range_query;
+    // cout << "query" << num_range_query << endl;
     return result;
 }
 
@@ -786,7 +789,8 @@ void CellTree::train(boost::variant<InnerNode *, LeafNode *, GridNode *, int> ro
         // this->train_pool->submit(node->index_model->buildModel(), );
         // node->index_model->buildModel();
         node->index_model->getErrorBound();
-        // cout << "; node error bound: " << node->index_model->error_bound[0] << ", " << node->index_model->error_bound[1]
+        // cout << "; node error bound: " << node->index_model->error_bound[0] << ", " <<
+        // node->index_model->error_bound[1]
         //      << " ; node key conter :" << node->getKeysNum() << endl;
     }
     else if (root.type() == typeid(GridNode *))
@@ -797,7 +801,8 @@ void CellTree::train(boost::variant<InnerNode *, LeafNode *, GridNode *, int> ro
         node->index_model->loadParameter(this->modelParamPath + to_string(TRAIN_LEAF_NODE_NUM++) + ".csv");
         // node->index_model->buildModel();zaCVb
         node->index_model->getErrorBound();
-        // cout << "; node error bound: " << node->index_model->error_bound[0] << ", " << node->index_model->error_bound[1]
+        // cout << "; node error bound: " << node->index_model->error_bound[0] << ", " <<
+        // node->index_model->error_bound[1]
         //      << " ; node key conter :" << node->getKeysNum() << endl;
     }
     else
