@@ -36,6 +36,8 @@ vector<array<double, 2> *> &GridNode::pointSearch(array<double, 2> key, vector<a
                                                   ExpRecorder &exp_Recorder)
 {
     // auto start_prePos = chrono::high_resolution_clock::now();
+    if (this->getKeysNum() <= 1)
+        return result;
     MetaData meta_key(&key);
     double area = this->getCellArea();
     meta_key.setMapVal(this->parent_rangeBound, area);
@@ -70,23 +72,32 @@ vector<array<double, 2> *> &GridNode::pointSearch(array<double, 2> key, vector<a
 vector<array<double, 2> *> &GridNode::rangeSearch(vector<double> query_range, vector<array<double, 2> *> &result,
                                                   ExpRecorder &exp_Recorder)
 {
+
+    if (this->getKeysNum() <= 1)
+        return result;
     auto start_refine = chrono::high_resolution_clock::now();
-    double *min_range = new double[MetaData::dim];
-    double *max_range = new double[MetaData::dim];
-    for (int i = 0; i < MetaData::dim; i++)
-    {
-        min_range[i] = query_range[i * 2];
-        max_range[i] = query_range[i * 2 + 1];
-    }
+    double min_range[2] = {query_range[0], query_range[2]};
+    double max_range[2] = {query_range[1], query_range[3]};
 
-    double *node_min = new double[MetaData::dim];
-    double *node_max = new double[MetaData::dim];
+    double node_min[2] = {rangeBound[0], rangeBound[2]};
+    double node_max[2] = {rangeBound[1], rangeBound[3]};
 
-    for (int i = 0; i < MetaData::dim; i++)
-    {
-        node_min[i] = rangeBound[i * 2];
-        node_max[i] = rangeBound[i * 2 + 1];
-    }
+    // double *min_range = new double[MetaData::dim];
+    // double *max_range = new double[MetaData::dim];
+    // for (int i = 0; i < MetaData::dim; i++)
+    // {
+    //     min_range[i] = query_range[i * 2];
+    //     max_range[i] = query_range[i * 2 + 1];
+    // }
+
+    // double *node_min = new double[MetaData::dim];
+    // double *node_max = new double[MetaData::dim];
+
+    // for (int i = 0; i < MetaData::dim; i++)
+    // {
+    //     node_min[i] = rangeBound[i * 2];
+    //     node_max[i] = rangeBound[i * 2 + 1];
+    // }
     array<double, MetaData::dim> overlap_min;
     array<double, MetaData::dim> overlap_max;
     for (int i = 0; i < MetaData::dim; i++)
@@ -122,11 +133,11 @@ vector<array<double, 2> *> &GridNode::rangeSearch(vector<double> query_range, ve
     int pre_min_position = index_model->preFastPosition(this->mapValtoScaling(meta_min.map_val));
     int pre_max_position = index_model->preFastPosition(this->mapValtoScaling(meta_max.map_val));
 
-    pre_min_position = std::max(pre_min_position, 0);
-    pre_max_position = std::max(pre_max_position, 0);
+    pre_min_position = pre_min_position > 0 ? pre_min_position : 0;
+    pre_max_position = pre_max_position > 0 ? pre_max_position : 0;
 
-    pre_min_position = std::min(pre_min_position, (int)(metadataVec.size() - 1));
-    pre_max_position = std::min(pre_max_position, (int)(metadataVec.size() - 1));
+    pre_min_position = pre_min_position > metadataVec.size() - 1 ? metadataVec.size() - 1 : pre_min_position;
+    pre_max_position = pre_max_position > metadataVec.size() - 1 ? metadataVec.size() - 1 : pre_max_position;
 
     pre_min_position = adjustPosition(metadataVec, index_model->error_bound, pre_min_position, meta_min, -1);
     pre_max_position = adjustPosition(metadataVec, index_model->error_bound, pre_max_position, meta_max, 1);
@@ -136,14 +147,22 @@ vector<array<double, 2> *> &GridNode::rangeSearch(vector<double> query_range, ve
 
     auto start_scan = chrono::high_resolution_clock::now();
     scan(metadataVec, pre_min_position, pre_max_position, min_range, max_range, result);
-    scanBuffer(insertBuffer, bufferDataSize, min_range, max_range, result);
+    if (bufferDataSize > 0)
+    {
+        if (!this->bufferOrdered)
+        {
+            std::sort(insertBuffer.begin(), insertBuffer.begin() + bufferDataSize, compareMetadata);
+            this->bufferOrdered = true;
+        }
+        scanBuffer(insertBuffer, bufferDataSize, min_range, max_range, result);
+    }
     auto end_scan = chrono::high_resolution_clock::now();
     exp_Recorder.rangeScanTime += chrono::duration_cast<chrono::nanoseconds>(end_scan - start_scan).count();
 
-    delete[] min_range;
-    delete[] max_range;
-    delete[] node_min;
-    delete[] node_max;
+    // delete[] min_range;
+    // delete[] max_range;
+    // delete[] node_min;
+    // delete[] node_max;
 
     return result;
 }
@@ -207,25 +226,80 @@ bool GridNode::insert(array<double, 2> &point)
     // return ture if merge then in cell tree check the leaf node
     // return false if not merge.
 
+    // MetaData insertMetadata(&point);
+    // double cell_area = this->getCellArea();
+    // insertMetadata.setMapVal(this->parent_rangeBound, cell_area);
+    // bool mergeFlag = false;
+    // if (bufferDataSize < INSERT_BUFFERSIZE)
+    // {
+    //     insertBuffer[bufferDataSize] = insertMetadata;
+    //     bufferDataSize++;
+    //     std::sort(insertBuffer.begin(), insertBuffer.begin() + bufferDataSize, compareMetadata);
+    // }
+    // else
+    // {
+    //     // merge the data into metadataVec
+    //     for (int i = 0; i < bufferDataSize; i++)
+    //     {
+    //         metadataVec.push_back(insertBuffer[i]);
+    //     }
+    //     mergeFlag = true;
+    //     bufferDataSize = 0;
+    // }
+    // return mergeFlag;
     MetaData insertMetadata(&point);
-    double cell_area = this->getCellArea();
-    insertMetadata.setMapVal(this->parent_rangeBound, cell_area);
-    bool mergeFlag = false;
-    if (bufferDataSize < INSERT_BUFFERSIZE)
+    double gridArea = this->getCellArea();
+    insertMetadata.setMapVal(this->rangeBound, gridArea);
+
+    int pre_position = index_model->preFastPosition(insertMetadata.map_val);
+
+    pre_position = pre_position > metadataVec.size() - 1 ? metadataVec.size() - 1 : pre_position;
+    pre_position = pre_position > 0 ? pre_position : 0;
+
+    double pre_map_val = metadataVec[pre_position].map_val;
+
+    bool bindaryInsert = false;
+
+    if (pre_map_val > insertMetadata.map_val)
     {
-        insertBuffer[bufferDataSize] = insertMetadata;
-        bufferDataSize++;
-        std::sort(insertBuffer.begin(), insertBuffer.begin() + bufferDataSize, compareMetadata);
+        int min_search_index =
+            pre_position + index_model->error_bound[0] > 0 ? pre_position + index_model->error_bound[0] : 0;
+        bindaryInsert =
+            insertMetadataInRange(metadataVec, metadataVecBitMap, min_search_index, pre_position, insertMetadata);
     }
     else
     {
-        // merge the data into metadataVec
-        for (int i = 0; i < bufferDataSize; i++)
+        int max_search_position = pre_position + index_model->error_bound[1] > metadataVec.size() - 1
+                                      ? metadataVec.size() - 1
+                                      : pre_position + index_model->error_bound[1];
+        // return bindary_search(metadataVec, metadataVecBitMap, pre_position, max_search_position, meta_key, result,
+        //                       insertMetadata);
+        bindaryInsert =
+            insertMetadataInRange(metadataVec, metadataVecBitMap, pre_position, max_search_position, insertMetadata);
+    }
+    bool mergeFlag = false;
+    if (!bindaryInsert)
+    {
+        if (bufferDataSize < INSERT_BUFFERSIZE)
         {
-            metadataVec.push_back(insertBuffer[i]);
+            insertBuffer[bufferDataSize] = insertMetadata;
+            bufferDataSize++;
+            this->bufferOrdered = false;
+            // std::sort(insertBuffer.begin(), insertBuffer.begin() + bufferDataSize, compareMetadata);
         }
-        mergeFlag = true;
-        bufferDataSize = 0;
+        else
+        {
+            // merge the data into metadataVec
+            for (int i = 0; i < bufferDataSize; i++)
+            {
+                metadataVec.push_back(insertBuffer[i]);
+            }
+            // this->index_model->getErrorBound();
+            std::sort(metadataVec.begin(), metadataVec.end(), compareMetadata);
+
+            mergeFlag = true;
+            bufferDataSize = 0;
+        }
     }
     return mergeFlag;
 }
@@ -272,4 +346,91 @@ bool GridNode::remove(array<double, 2> &point)
 int GridNode::getKeysNum()
 {
     return this->metadataVecBitMap.count() + bufferDataSize;
+}
+
+void GridNode::retrainModel()
+{
+    int pre_lowerror = this->index_model->error_bound[0];
+    int pre_upperror = this->index_model->error_bound[1];
+
+    this->index_model->refreshMetaDataVec(this->metadataVec);
+    this->index_model->getErrorBound();
+
+    int low_error_change = std::abs(this->index_model->error_bound[0] - pre_lowerror);
+    int upper_error_change = std::abs(this->index_model->error_bound[1] - pre_upperror);
+
+    //! error bound reach the setting threshold, then retrain the model
+    if (low_error_change > 500 && upper_error_change > 500)
+        this->index_model->getParamFromScoket(12333, this->metadataVec);
+}
+
+void GridNode::kNNInNode(std::vector<double> query_range,
+                         priority_queue<array<double, 2> *, vector<array<double, 2> *>, sortForKNN> &temp_result)
+{
+    if (this->getKeysNum() <= 1)
+        return;
+    double min_range[2] = {query_range[0], query_range[2]};
+    double max_range[2] = {query_range[1], query_range[3]};
+
+    double node_min[2] = {rangeBound[0], rangeBound[2]};
+    double node_max[2] = {rangeBound[1], rangeBound[3]};
+
+    array<double, MetaData::dim> overlap_min;
+    array<double, MetaData::dim> overlap_max;
+    for (int i = 0; i < MetaData::dim; i++)
+    {
+        if (node_min[i] > min_range[i] && node_max[i] < max_range[i])
+        {
+            overlap_min[i] = node_min[i];
+            overlap_max[i] = node_max[i];
+        }
+        else if (node_min[i] < min_range[i] && node_max[i] > max_range[i])
+        {
+            overlap_min[i] = min_range[i];
+            overlap_max[i] = max_range[i];
+        }
+        else if (node_min[i] > min_range[i])
+        {
+            overlap_min[i] = node_min[i];
+            overlap_max[i] = max_range[i];
+        }
+        else if (node_max[i] > min_range[i])
+        {
+            overlap_min[i] = min_range[i];
+            overlap_max[i] = node_max[i];
+        }
+    }
+    double cell_area = this->getCellArea();
+
+    MetaData meta_min(&overlap_min);
+    meta_min.setMapVal(rangeBound, cell_area);
+    MetaData meta_max(&overlap_max);
+    meta_max.setMapVal(rangeBound, cell_area);
+    int pre_min_position = index_model->preFastPosition(meta_min.map_val);
+    int pre_max_position = index_model->preFastPosition(meta_max.map_val);
+
+    pre_min_position = pre_min_position > 0 ? pre_min_position : 0;
+    pre_max_position = pre_max_position > 0 ? pre_max_position : 0;
+
+    pre_min_position = pre_min_position > metadataVec.size() - 1 ? metadataVec.size() - 1 : pre_min_position;
+    pre_max_position = pre_max_position > metadataVec.size() - 1 ? metadataVec.size() - 1 : pre_max_position;
+
+    pre_min_position = knnAdjustPosition(metadataVec, index_model->error_bound, pre_min_position, meta_min);
+    pre_max_position = knnAdjustPosition(metadataVec, index_model->error_bound, pre_max_position, meta_max);
+
+    // pre_min_position = adjustPosition(metadataVec, index_model->error_bound, pre_min_position, meta_min, -1);
+    // pre_max_position = adjustPosition(metadataVec, index_model->error_bound, pre_max_position, meta_max, 1);
+
+    for (int i = pre_min_position; i <= pre_max_position; i++)
+    {
+        if (min_range[0] > (*(metadataVec[i].data))[0] || (*(metadataVec[i].data))[0] > max_range[0] ||
+            min_range[1] > (*(metadataVec[i].data))[1] || (*(metadataVec[i].data))[1] > max_range[1])
+        {
+            continue;
+        }
+        else
+        {
+            temp_result.push(metadataVec[i].data);
+        }
+    }
 }

@@ -25,6 +25,7 @@ class GridNode
     array<MetaData, INSERT_BUFFERSIZE> insertBuffer;
     int bufferDataSize = 0;
     bitset<BITMAP_SIZE> metadataVecBitMap;
+    bool bufferOrdered = true;
 
     // bit set for delete?
 
@@ -48,6 +49,10 @@ class GridNode
     bool remove(array<double, 2> &point);
 
     int getKeysNum();
+    void retrainModel();
+
+    void kNNInNode(std::vector<double> query_range,
+                   priority_queue<array<double, 2> *, vector<array<double, 2> *>, sortForKNN> &temp_result);
 
   private:
 };

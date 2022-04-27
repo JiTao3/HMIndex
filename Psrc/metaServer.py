@@ -3,7 +3,8 @@ import struct
 import torch
 from model import LeoModel
 
-leoModelPath = "/home/jitao/leo_index/log/osm_cn/osm_cn_1.pt"
+leoModelPath = "/home/jitao/leo_index/log/skewed/skewed1.pt"
+# leoModelPath = "/home/jitao/leo_index/log/osm_cn/osm_cn_1.pt"
 device = torch.device("cuda:4" if torch.cuda.is_available() else "cpu")
 
 
@@ -24,6 +25,7 @@ class MetaTCPHandler(socketserver.BaseRequestHandler):
     def _leo_cal_weight_(self, leo_model, batchSize):
         sampledData = struct.unpack("%sd" % batchSize, self.data)
         # print(sampledData)
+        print("receive data!")
         input = torch.FloatTensor(sampledData).to(device)
         input = input.view(1, 1, input.shape[-1], 1)
         weight = leo_model.encode_decode(input)

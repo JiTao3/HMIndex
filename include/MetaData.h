@@ -4,7 +4,7 @@
 #include <array>
 #include <torch/torch.h>
 // #include <torch/utils.h>
-# define INSERT_BUFFERSIZE 500
+# define INSERT_BUFFERSIZE 1000
 # define BITMAP_SIZE 100000
 
 using namespace std;

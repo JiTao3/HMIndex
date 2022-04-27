@@ -3,6 +3,7 @@
 #include "IndexModel.h"
 #include "MetaData.h"
 #include "Utils.h"
+#include <algorithm>
 #include <bitset>
 #include <limits>
 #include <vector>
@@ -28,6 +29,7 @@ class LeafNode
     array<MetaData, INSERT_BUFFERSIZE> insertBuffer;
     int bufferDataSize = 0;
     bitset<BITMAP_SIZE> metadataVecBitMap;
+    bool bufferOrdered = true;
 
     LeafNode();
     LeafNode(std::vector<MetaData> &_metadatas, std::vector<double> _range_bound);
@@ -49,6 +51,11 @@ class LeafNode
     bool remove(array<double, 2> &point);
 
     int getKeysNum();
+
+    void retrainModel();
+
+    void kNNInNode(std::vector<double> query_range,
+                   priority_queue<array<double, 2> *, vector<array<double, 2> *>, sortForKNN> &temp_result);
 
   private:
 };

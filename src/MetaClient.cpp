@@ -21,11 +21,16 @@ int connectMetaServer(vector<float> &modelParam, vector<double> &sampleData, int
     double data[sampleData.size()];
     double recvData[modelParamSize];
     for (int i = 0; i < sampleData.size(); i++)
+    {
         data[i] = sampleData[i];
+        // cout << data[i] << " ";
+    }
+    // cout << endl;
     send(client, data, sizeof(data), 0);
     memset(recvData, 0, sizeof(recvData));
     int len = recv(client, recvData, sizeof(recvData), 0);
     for (int i = 0; i < modelParamSize; i++)
         modelParam.push_back(recvData[i]);
     close(client);
+    return port;
 }

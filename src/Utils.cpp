@@ -170,7 +170,7 @@ vector<array<double, 2> *> &bindary_search(vector<MetaData> &metadataVec, bitset
     int mid = -1;
     while (start <= end)
     {
-        mid = (start + end) / 2;
+        mid = (end - start) / 2 + start;
         if (equalMetadata(metadataVec[mid], meta_key))
         {
             if (bitmap[mid])
@@ -211,6 +211,54 @@ vector<array<double, 2> *> &bindary_search(vector<MetaData> &metadataVec, bitset
     return result;
 }
 
+vector<array<double, 2> *> &bindary_search(array<MetaData, INSERT_BUFFERSIZE> &buffer, int begin_idx, int end_idx,
+                                           MetaData &meta_key, std::vector<array<double, 2> *> &result)
+{
+    int start = begin_idx;
+    int end = end_idx;
+    int mid = -1;
+    while (start <= end)
+    {
+        mid = (end - start) / 2 + start;
+
+        if (equalMetadata(buffer[mid], meta_key))
+        {
+            result.push_back(buffer[mid].data);
+        }
+        else if (meta_key.map_val < buffer[mid].map_val)
+        {
+            end = mid - 1;
+        }
+        else
+        {
+            start = mid + 1;
+        }
+    }
+
+    int left = mid - 1;
+    int right = mid + 1;
+    while (left >= begin_idx && buffer[left].map_val == meta_key.map_val)
+    {
+        if (equalMetadata(buffer[left], meta_key))
+        {
+            result.push_back(buffer[left].data);
+        }
+        left--;
+    }
+    while (right <= end_idx && buffer[right].map_val == meta_key.map_val)
+    {
+        if (equalMetadata(buffer[right], meta_key))
+        {
+            result.push_back(buffer[right].data);
+        }
+        right++;
+    }
+    // auto end_bin = chrono::high_resolution_clock::now();
+    // expr.pointBindarySearchTime +=chrono::duration_cast<chrono::nanoseconds>(end_bin - start_bin).count();
+
+    return result;
+}
+
 int bindarySearchAdjustPrePos(vector<MetaData> &metadataVec, int beginIndex, int endIndex, MetaData &meta_key,
                               int LeftORRight)
 {
@@ -220,10 +268,12 @@ int bindarySearchAdjustPrePos(vector<MetaData> &metadataVec, int beginIndex, int
 
     int begin = beginIndex;
     int end = endIndex;
+    if (beginIndex == endIndex)
+        return beginIndex;
     int mid = -1;
     while (begin <= end)
     {
-        mid = (begin + end) / 2;
+        mid = (end - begin) / 2 + begin;
         if (metadataVec[mid].map_val == meta_key.map_val)
             break;
         else if (meta_key.map_val < metadataVec[mid].map_val)
@@ -249,7 +299,7 @@ int bindarySearchAdjustPrePos(vector<MetaData> &metadataVec, int beginIndex, int
     }
 }
 
-int adjustPosition(vector<MetaData> &metadataVec, vector<int> error_bound, int pre_position, MetaData meta_key,
+int adjustPosition(vector<MetaData> &metadataVec, vector<int> &error_bound, int pre_position, MetaData meta_key,
                    int leftORright)
 {
     if (metadataVec[pre_position].map_val == meta_key.map_val)
@@ -272,13 +322,56 @@ int adjustPosition(vector<MetaData> &metadataVec, vector<int> error_bound, int p
     }
     else if (metadataVec[pre_position].map_val > meta_key.map_val)
     {
+        int min_position = pre_position + error_bound[0] < 0 ? 0 : pre_position + error_bound[0];
+        return bindarySearchAdjustPrePos(metadataVec, min_position, pre_position, meta_key, leftORright);
+    }
+    else
+    {
+        int max_position = pre_position + error_bound[1] > metadataVec.size() - 1 ? metadataVec.size() - 1
+                                                                                  : pre_position + error_bound[1];
+        return bindarySearchAdjustPrePos(metadataVec, pre_position, max_position, meta_key, leftORright);
+    }
+    // return pre_position;
+}
+
+int knnbindarySearchAdjustPrePos(vector<MetaData> &metadataVec, int beginIndex, int endIndex, MetaData &meta_key)
+{
+    int begin = beginIndex;
+    int end = endIndex;
+    int mid = -1;
+    if (begin == end)
+        return beginIndex;
+    while (begin <= end)
+    {
+        mid = (end - begin) / 2 + begin;
+
+        if (metadataVec[mid].map_val == meta_key.map_val)
+            break;
+        else if (meta_key.map_val < metadataVec[mid].map_val)
+            end = mid - 1;
+        else
+            begin = mid + 1;
+    }
+    return mid;
+}
+
+int knnAdjustPosition(vector<MetaData> &metadataVec, vector<int> &error_bound, int pre_position, MetaData meta_key)
+{
+    if (metadataVec[pre_position].map_val == meta_key.map_val)
+    {
+        // > 0 👉
+        // < 0 👈
+        return pre_position;
+    }
+    else if (metadataVec[pre_position].map_val > meta_key.map_val)
+    {
         // std::vector<int> offsets = bindary_search(metadataVec, pre_position + error_bound[0], pre_position,
         // meta_key); pre_position = *std::max_element(offsets.begin(), offsets.end());
         int min_position = pre_position + error_bound[0] < 0 ? 0 : pre_position + error_bound[0];
-        if (min_position == pre_position)
-            return pre_position;
-        else
-            return bindarySearchAdjustPrePos(metadataVec, min_position, pre_position, meta_key, leftORright);
+        // if (min_position == pre_position)
+        //     return pre_position;
+        // else
+        return knnbindarySearchAdjustPrePos(metadataVec, min_position, pre_position, meta_key);
     }
     else
     {
@@ -286,32 +379,41 @@ int adjustPosition(vector<MetaData> &metadataVec, vector<int> error_bound, int p
         // meta_key); pre_position = *std::min_element(offsets.begin(), offsets.end());
         int max_position = pre_position + error_bound[1] > metadataVec.size() - 1 ? metadataVec.size() - 1
                                                                                   : pre_position + error_bound[1];
-        if (max_position == pre_position)
-            return pre_position;
-        else
-            return bindarySearchAdjustPrePos(metadataVec, pre_position, max_position, meta_key, leftORright);
+        // if (max_position == pre_position)
+        //     return pre_position;
+        // else
+        return knnbindarySearchAdjustPrePos(metadataVec, pre_position, max_position, meta_key);
     }
-    // return pre_position;
 }
-
 void scan(vector<MetaData> &metadataVec, int begin, int end, double *min_range, double *max_range,
           vector<array<double, 2> *> &result)
 {
     for (int i = begin; i <= end; i++)
     {
-        bool is_in = true;
-        for (int idx = 0; idx < MetaData::dim; idx++)
+        if (min_range[0] > (*(metadataVec[i].data))[0] || (*(metadataVec[i].data))[0] > max_range[0] ||
+            min_range[1] > (*(metadataVec[i].data))[1] || (*(metadataVec[i].data))[1] > max_range[1])
         {
-            if (!((*(metadataVec[i].data))[idx] >= min_range[idx] && (*(metadataVec[i].data))[idx] <= max_range[idx]))
-            {
-                is_in = false;
-                break;
-            }
+            continue;
         }
-        if (is_in)
+        else
         {
             result.push_back(metadataVec[i].data);
         }
+
+        // bool is_in = true;
+        // for (int idx = 0; idx < MetaData::dim; idx++)
+        // {
+        //     if (!((*(metadataVec[i].data))[idx] >= min_range[idx] && (*(metadataVec[i].data))[idx] <=
+        //     max_range[idx]))
+        //     {
+        //         is_in = false;
+        //         break;
+        //     }
+        // }
+        // if (is_in)
+        // {
+        //     result.push_back(metadataVec[i].data);
+        // }
     }
 }
 
@@ -352,27 +454,40 @@ void orderMetaData(vector<MetaData> &metadataVec)
 int queryCellRealtion(vector<double> &rangeBound, vector<double> &query)
 {
     // bool overlapFlag = OVERLAP;
+    float dimxMax = rangeBound[1] > query[1] ? query[1] : rangeBound[1];
+    float dimxMin = rangeBound[0] > query[0] ? rangeBound[0] : query[0];
 
-    for (int i = 0; i < MetaData::dim; i++)
-    {
-        // min(node max and range max)
-        float dimMax = rangeBound[2 * i + 1] > query[2 * i + 1] ? query[2 * i + 1] : rangeBound[2 * i + 1];
-        // max(node min and range min)
-        float dimMin = rangeBound[2 * i] > query[2 * i] ? rangeBound[2 * i] : query[2 * i];
-        if (dimMax < dimMin)
-            return DISSOCIATION;
-    }
-    for (int i = 0; i < MetaData::dim; i++)
-    {
-        if (!(query[i * 2] < rangeBound[i * 2] && query[i * 2 + 1] > rangeBound[i * 2 + 1]))
-            return INTERSECTION;
-    }
-    return CONTAIN;
+    float dimyMax = rangeBound[3] > query[3] ? query[3] : rangeBound[3];
+    float dimyMin = rangeBound[2] > query[2] ? rangeBound[2] : query[2];
+
+    if (dimxMax < dimxMin || dimyMax < dimyMin)
+        return DISSOCIATION;
+
+    else if ((query[0] < rangeBound[0] && query[1] > rangeBound[1]) &&
+             (query[2] < rangeBound[2] && query[3] > rangeBound[3]))
+        return CONTAIN;
+    else
+        return INTERSECTION;
+    // for (int i = 0; i < MetaData::dim; i++)
+    // {
+    //     // min(node max and range max)
+    //     float dimMax = rangeBound[2 * i + 1] > query[2 * i + 1] ? query[2 * i + 1] : rangeBound[2 * i + 1];
+    //     // max(node min and range min)
+    //     float dimMin = rangeBound[2 * i] > query[2 * i] ? rangeBound[2 * i] : query[2 * i];
+    //     if (dimMax < dimMin)
+    //         return DISSOCIATION;
+    // }
+    //     for (int i = 0; i < MetaData::dim; i++)
+    //     {
+    //         if (!(query[i * 2] < rangeBound[i * 2] && query[i * 2 + 1] > rangeBound[i * 2 + 1]))
+    //             return INTERSECTION;
+    //     }
+    // return CONTAIN;
 }
 
-double distFunction(array<double, 2> *point1, array<double, 2> &point2)
+double distFunction(array<double, 2> *point1, double x, double y)
 {
-    return sqrt(pow(((*point1)[0] - point2[0]), 2) + pow(((*point1)[1] - point2[1]), 2));
+    return pow(((*point1)[0] - x), 2) + pow(((*point1)[1] - y), 2);
 }
 
 bool insertMetadataInRange(vector<MetaData> &metadataVec, bitset<BITMAP_SIZE> &bitmap, int begin_idx, int end_idx,
@@ -382,9 +497,11 @@ bool insertMetadataInRange(vector<MetaData> &metadataVec, bitset<BITMAP_SIZE> &b
     while (metadataVec[idx].map_val < meta_key.map_val && idx <= end_idx)
         idx++;
     idx--;
+    if (idx < 0)
+        return false;
     if (bitmap[idx] == false)
     {
-        metadataVec[idx]=meta_key;
+        metadataVec[idx] = meta_key;
         bitmap[idx] = 1;
         return true;
     }
@@ -400,7 +517,7 @@ bool deleteMetadataInRange(vector<MetaData> &metadataVec, bitset<BITMAP_SIZE> &b
     bool deleteFlag = false;
     while (start <= end)
     {
-        mid = (start + end) / 2;
+        mid = (end - start) / 2 + start;
         if (equalMetadata(metadataVec[mid], deleteMetadata))
         {
             bitmap[mid] = 0;
@@ -445,18 +562,28 @@ void scanBuffer(array<MetaData, INSERT_BUFFERSIZE> &insertBuffer, int bufferData
 {
     for (int i = 0; i < bufferDataSize; i++)
     {
-        bool is_in = true;
-        for (int idx = 0; idx < MetaData::dim; idx++)
+        if (min_range[0] > (*(insertBuffer[i].data))[0] || (*(insertBuffer[i].data))[0] > max_range[0] ||
+            min_range[1] > (*(insertBuffer[i].data))[1] || (*(insertBuffer[i].data))[1] > max_range[1])
         {
-            if (!((*(insertBuffer[i].data))[idx] >= min_range[idx] && (*(insertBuffer[i].data))[idx] <= max_range[idx]))
-            {
-                is_in = false;
-                break;
-            }
+            continue;
         }
-        if (is_in)
+        else
         {
             result.push_back(insertBuffer[i].data);
         }
+        // bool is_in = true;
+        // for (int idx = 0; idx < MetaData::dim; idx++)
+        // {
+        //     if (!((*(insertBuffer[i].data))[idx] >= min_range[idx] && (*(insertBuffer[i].data))[idx] <=
+        //     max_range[idx]))
+        //     {
+        //         is_in = false;
+        //         break;
+        //     }
+        // }
+        // if (is_in)
+        // {
+        //     result.push_back(insertBuffer[i].data);
+        // }
     }
 }

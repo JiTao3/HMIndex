@@ -21,6 +21,8 @@
 
 void getAllMetaData(boost::variant<InnerNode *, LeafNode *, GridNode *, int> root, vector<MetaData> &all_medata);
 void getAllData(boost::variant<InnerNode *, LeafNode *, GridNode *, int> root, vector<array<double, 2> *> &result);
+void getAllData(boost::variant<InnerNode *, LeafNode *, GridNode *, int> root,
+                priority_queue<array<double, 2> *, vector<array<double, 2> *>, sortForKNN> &result);
 
 class CellTree
 {
@@ -73,6 +75,11 @@ class CellTree
                                           ExpRecorder &exp_Recorder);
     void DFSCelltree(vector<double> &query, vector<array<double, 2> *> &result,
                      boost::variant<InnerNode *, LeafNode *, GridNode *, int> root, ExpRecorder &exp_Recorder);
+
+    void kNNDFSCellTree(vector<double> &query,
+                        priority_queue<array<double, 2> *, vector<array<double, 2> *>, sortForKNN> &result,
+                        boost::variant<InnerNode *, LeafNode *, GridNode *, int> root);
+
     void train(boost::variant<InnerNode *, LeafNode *, GridNode *, int> root);
 
     void insert(array<double, 2> &point);

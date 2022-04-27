@@ -60,6 +60,7 @@ std::vector<double> LeafNode::getRangeBound()
 
 double LeafNode::getCellArea()
 {
+    this->cell_area = 1.0;
     for (int i = 0; i < dim; i++)
     {
         cell_area *= (range_bound[i * 2 + 1] - range_bound[i * 2]);
@@ -83,6 +84,8 @@ vector<array<double, 2> *> &LeafNode::pointSearch(array<double, 2> key, std::vec
                                                   ExpRecorder &exp_Recorder)
 {
 
+    if (this->getKeysNum() <= 1)
+        return result;
     MetaData meta_key(&key);
     meta_key.setMapVal(range_bound, cell_area);
     int pre_position = index_model->preFastPosition(meta_key.map_val);
@@ -95,39 +98,36 @@ vector<array<double, 2> *> &LeafNode::pointSearch(array<double, 2> key, std::vec
     {
         int min_search_index =
             pre_position + index_model->error_bound[0] > 0 ? pre_position + index_model->error_bound[0] : 0;
-        return bindary_search(metadataVec, metadataVecBitMap, min_search_index, pre_position, meta_key, result,
-                              exp_Recorder);
+        bindary_search(metadataVec, metadataVecBitMap, min_search_index, pre_position, meta_key, result, exp_Recorder);
+        if (bufferDataSize > 0)
+            bindary_search(this->insertBuffer, 0, bufferDataSize, meta_key, result);
+        return result;
     }
     else
     {
-        int max_search_position = pre_position + index_model->error_bound[1] > metadataVec.size() - 1
-                                      ? metadataVec.size() - 1
-                                      : pre_position + index_model->error_bound[1];
-        return bindary_search(metadataVec, metadataVecBitMap, pre_position, max_search_position, meta_key, result,
-                              exp_Recorder);
+        int max_search_index = pre_position + index_model->error_bound[1] > metadataVec.size() - 1
+                                   ? metadataVec.size() - 1
+                                   : pre_position + index_model->error_bound[1];
+        bindary_search(metadataVec, metadataVecBitMap, pre_position, max_search_index, meta_key, result, exp_Recorder);
+        if (bufferDataSize > 0)
+            bindary_search(this->insertBuffer, 0, bufferDataSize, meta_key, result);
+        return result;
     }
 }
 
 vector<array<double, 2> *> &LeafNode::rangeSearch(std::vector<double> query_range, vector<array<double, 2> *> &result,
                                                   ExpRecorder &exp_Recorder)
 {
+    if (this->getKeysNum() <= 2)
+        return result;
     auto start_refine = chrono::high_resolution_clock::now();
-    double *min_range = new double[MetaData::dim];
-    double *max_range = new double[MetaData::dim];
-    for (int i = 0; i < MetaData::dim; i++)
-    {
-        min_range[i] = query_range[i * 2];
-        max_range[i] = query_range[i * 2 + 1];
-    }
 
-    double *node_min = new double[MetaData::dim];
-    double *node_max = new double[MetaData::dim];
+    double min_range[2] = {query_range[0], query_range[2]};
+    double max_range[2] = {query_range[1], query_range[3]};
 
-    for (int i = 0; i < MetaData::dim; i++)
-    {
-        node_min[i] = range_bound[i * 2];
-        node_max[i] = range_bound[i * 2 + 1];
-    }
+    double node_min[2] = {range_bound[0], range_bound[2]};
+    double node_max[2] = {range_bound[1], range_bound[3]};
+
     array<double, MetaData::dim> overlap_min;
     array<double, MetaData::dim> overlap_max;
     for (int i = 0; i < MetaData::dim; i++)
@@ -175,15 +175,18 @@ vector<array<double, 2> *> &LeafNode::rangeSearch(std::vector<double> query_rang
     auto start_scan = chrono::high_resolution_clock::now();
     scan(metadataVec, pre_min_position, pre_max_position, min_range, max_range, result);
     // ! scanBuffer
-    scanBuffer(insertBuffer, bufferDataSize, min_range, max_range, result);
+    if (bufferDataSize > 0)
+    {
+        if (!this->bufferOrdered)
+        {
+            std::sort(insertBuffer.begin(), insertBuffer.begin() + bufferDataSize, compareMetadata);
+            this->bufferOrdered = true;
+        }
+
+        scanBuffer(insertBuffer, bufferDataSize, min_range, max_range, result);
+    }
     auto end_scan = chrono::high_resolution_clock::now();
     exp_Recorder.rangeScanTime += chrono::duration_cast<chrono::nanoseconds>(end_scan - start_scan).count();
-    
-
-    delete[] min_range;
-    delete[] max_range;
-    delete[] node_min;
-    delete[] node_max;
 
     return result;
 }
@@ -247,21 +250,26 @@ bool LeafNode::insert(array<double, 2> &point)
             insertMetadataInRange(metadataVec, metadataVecBitMap, pre_position, max_search_position, insertMetadata);
     }
     bool mergeFlag = false;
-    if (bindaryInsert)
+    if (!bindaryInsert)
     {
         if (bufferDataSize < INSERT_BUFFERSIZE)
         {
             insertBuffer[bufferDataSize] = insertMetadata;
             bufferDataSize++;
-            std::sort(insertBuffer.begin(), insertBuffer.begin() + bufferDataSize, compareMetadata);
+            this->bufferOrdered = false;
+            // std::sort(insertBuffer.begin(), insertBuffer.begin() + bufferDataSize, compareMetadata);
         }
         else
         {
             // merge the data into metadataVec
+            // cout << "before merge : " << metadataVec.size() << " ";
             for (int i = 0; i < bufferDataSize; i++)
             {
                 metadataVec.push_back(insertBuffer[i]);
             }
+            std::sort(metadataVec.begin(), metadataVec.end(), compareMetadata);
+            // cout << "after merge : " << metadataVec.size() << endl;
+
             mergeFlag = true;
             bufferDataSize = 0;
         }
@@ -271,6 +279,7 @@ bool LeafNode::insert(array<double, 2> &point)
 
 bool LeafNode::remove(array<double, 2> &point)
 {
+    bool deleteFlag = false;
     MetaData deleteMetadata(&point);
     deleteMetadata.setMapVal(this->range_bound, this->cell_area);
     int prePosition = this->index_model->preFastPosition(deleteMetadata.map_val);
@@ -279,23 +288,26 @@ bool LeafNode::remove(array<double, 2> &point)
     {
         int min_search_index =
             prePosition + index_model->error_bound[0] > 0 ? prePosition + index_model->error_bound[0] : 0;
-        deleteMetadataInRange(metadataVec, metadataVecBitMap, min_search_index, prePosition, deleteMetadata);
+        deleteFlag =
+            deleteMetadataInRange(metadataVec, metadataVecBitMap, min_search_index, prePosition, deleteMetadata);
     }
     else
     {
         int max_search_position = prePosition + index_model->error_bound[1] > metadataVec.size() - 1
                                       ? metadataVec.size() - 1
                                       : prePosition + index_model->error_bound[1];
-        deleteMetadataInRange(metadataVec, metadataVecBitMap, prePosition, max_search_position, deleteMetadata);
+        deleteFlag =
+            deleteMetadataInRange(metadataVec, metadataVecBitMap, prePosition, max_search_position, deleteMetadata);
     }
     int deleteNumInBuffer = 0;
     for (int i = 0; i < bufferDataSize; i++)
     {
-        if (compareMetadata(insertBuffer[i], deleteMetadata))
+        if (equalMetadata(insertBuffer[i], deleteMetadata))
         {
             insertBuffer[i].map_val = numeric_limits<double>::max();
             insertBuffer[i].data = nullptr;
             deleteNumInBuffer++;
+            deleteFlag = true;
         }
     }
     if (deleteNumInBuffer > 0)
@@ -303,9 +315,104 @@ bool LeafNode::remove(array<double, 2> &point)
         std::sort(insertBuffer.begin(), insertBuffer.begin() + bufferDataSize, compareMetadata);
         this->bufferDataSize -= deleteNumInBuffer;
     }
+    return deleteFlag;
 }
 
 int LeafNode::getKeysNum()
 {
     return this->metadataVecBitMap.count() + bufferDataSize;
+}
+
+void LeafNode::retrainModel()
+{
+    // vector<int> preErrorBound = this->index_model->error_bound;
+    int pre_lowerror = this->index_model->error_bound[0];
+    int pre_upperror = this->index_model->error_bound[1];
+
+    this->index_model->refreshMetaDataVec(this->metadataVec);
+    this->index_model->getErrorBound();
+
+    int low_error_change = std::abs(this->index_model->error_bound[0] - pre_lowerror);
+    int upper_error_change = std::abs(this->index_model->error_bound[1] - pre_upperror);
+
+    // cout << "befor merge: " << pre_lowerror << " --- " << pre_upperror << endl;
+    // cout << "after merge: " << this->index_model->error_bound[0] << " --- " << this->index_model->error_bound[1]
+    //      << endl;
+    //! error bound reach the setting threshold, then retrain the model
+    if (low_error_change > 500 && upper_error_change > 500)
+        this->index_model->getParamFromScoket(12333, this->metadataVec);
+    // cout << "after training: " << this->index_model->error_bound[0] << " --- " << this->index_model->error_bound[1]
+    //      << endl
+    //      << endl;
+}
+
+void LeafNode::kNNInNode(std::vector<double> query_range,
+                         priority_queue<array<double, 2> *, vector<array<double, 2> *>, sortForKNN> &temp_result)
+{
+
+    if (this->getKeysNum() <= 1)
+        return;
+
+    double min_range[2] = {query_range[0], query_range[2]};
+    double max_range[2] = {query_range[1], query_range[3]};
+
+    double node_min[2] = {range_bound[0], range_bound[2]};
+    double node_max[2] = {range_bound[1], range_bound[3]};
+
+    array<double, MetaData::dim> overlap_min;
+    array<double, MetaData::dim> overlap_max;
+    for (int i = 0; i < MetaData::dim; i++)
+    {
+        if (node_min[i] > min_range[i] && node_max[i] < max_range[i])
+        {
+            overlap_min[i] = node_min[i];
+            overlap_max[i] = node_max[i];
+        }
+        else if (node_min[i] < min_range[i] && node_max[i] > max_range[i])
+        {
+            overlap_min[i] = min_range[i];
+            overlap_max[i] = max_range[i];
+        }
+        else if (node_min[i] > min_range[i])
+        {
+            overlap_min[i] = node_min[i];
+            overlap_max[i] = max_range[i];
+        }
+        else if (node_max[i] > min_range[i])
+        {
+            overlap_min[i] = min_range[i];
+            overlap_max[i] = node_max[i];
+        }
+    }
+    MetaData meta_min(&overlap_min);
+    meta_min.setMapVal(range_bound, cell_area);
+    MetaData meta_max(&overlap_max);
+    meta_max.setMapVal(range_bound, cell_area);
+    int pre_min_position = index_model->preFastPosition(meta_min.map_val);
+    int pre_max_position = index_model->preFastPosition(meta_max.map_val);
+
+    pre_min_position = pre_min_position > 0 ? pre_min_position : 0;
+    pre_max_position = pre_max_position > 0 ? pre_max_position : 0;
+
+    pre_min_position = pre_min_position > metadataVec.size() - 1 ? metadataVec.size() - 1 : pre_min_position;
+    pre_max_position = pre_max_position > metadataVec.size() - 1 ? metadataVec.size() - 1 : pre_max_position;
+
+    pre_min_position = knnAdjustPosition(metadataVec, index_model->error_bound, pre_min_position, meta_min);
+    pre_max_position = knnAdjustPosition(metadataVec, index_model->error_bound, pre_max_position, meta_max);
+
+    // pre_min_position = adjustPosition(metadataVec, index_model->error_bound, pre_min_position, meta_min, -1);
+    // pre_max_position = adjustPosition(metadataVec, index_model->error_bound, pre_max_position, meta_max, 1);
+
+    for (int i = pre_min_position; i <= pre_max_position; i++)
+    {
+        if (min_range[0] > (*(metadataVec[i].data))[0] || (*(metadataVec[i].data))[0] > max_range[0] ||
+            min_range[1] > (*(metadataVec[i].data))[1] || (*(metadataVec[i].data))[1] > max_range[1])
+        {
+            continue;
+        }
+        else
+        {
+            temp_result.push(metadataVec[i].data);
+        }
+    }
 }

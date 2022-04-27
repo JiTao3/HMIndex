@@ -79,18 +79,18 @@ if __name__ == "__main__":
     #     "/home/jitao/leo_index/log/osm_en_us/osm_en_us_1.pt",
     #     "/data/jitao/dataset/OSM_US_NE/initial_model_param_for_split/",
     # )
-    # generate_all_model_initial_parameter(
-    #     "/data/jitao/dataset/Tiger/split/",
-    #     "/home/jitao/leo_index/log/tiger/tiger_1.pt",
-    #     "/data/jitao/dataset/Tiger/initial_model_param_for_split/",
-    # )
+    generate_all_model_initial_parameter(
+        "/data/jitao/dataset/Tiger/split/",
+        "/home/jitao/leo_index/log/tiger/tiger_1.pt",
+        "/data/jitao/dataset/Tiger/initial2_model_param_for_split/",
+    )
     # generate_all_model_initial_parameter(
     #     "/data/jitao/dataset/uniform/split/",
     #     "/home/jitao/leo_index/log/uniform/uniform1.pt",
     #     "/data/jitao/dataset/uniform/initial_model_param_for_split/",
     # )
-    generate_all_model_initial_parameter(
-        "/data/jitao/dataset/skewed/split/",
-        "/home/jitao/leo_index/log/skewed/skewed1.pt",
-        "/data/jitao/dataset/skewed/initial_model_param_for_split/",
-    )
+    # generate_all_model_initial_parameter(
+    #     "/data/jitao/dataset/skewed/split/",
+    #     "/home/jitao/leo_index/log/skewed/skewed1.pt",
+    #     "/data/jitao/dataset/skewed/initial_model_param_for_split/",
+    # )

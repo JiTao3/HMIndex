@@ -236,6 +236,9 @@ void CellTree::buildCheck(boost::variant<InnerNode *, LeafNode *, GridNode *, in
 
             InnerNode *parent_parent_node = parent_node->parent;
             LeafNode *merge_node = new LeafNode(all_metadata, parent_node->range_bound);
+
+            if (openTraining)
+                merge_node->index_model->getParamFromScoket(12333, merge_node->metadataVec);
             merge_node->parent = parent_parent_node;
 
             // delete the brother node to avoid the recursion.
@@ -311,6 +314,10 @@ void CellTree::buildCheck(boost::variant<InnerNode *, LeafNode *, GridNode *, in
                 vector<MetaData> medataVec = splitLeafNodeToLeaf(leaf_node->metadataVec, split_point, j);
                 vector<double> range_bound = splitNodeToSplitedRegion(leaf_node->range_bound, split_point, j);
                 LeafNode *child_node = new LeafNode(medataVec, range_bound);
+
+                if (openTraining)
+                    child_node->index_model->getParamFromScoket(12333, child_node->metadataVec);
+
                 child_node->parent = replace_node;
                 child_node->splitFlag = true;
 
@@ -375,6 +382,9 @@ void CellTree::buildCheck(boost::variant<InnerNode *, LeafNode *, GridNode *, in
                     splitLeafNodeToGridRegion(leaf_node->range_bound, split_point, split_dim, j);
                 vector<MetaData> metadataVec = splitLeafNodeToGrid(leaf_node->metadataVec, range_bound);
                 GridNode *grid_node = new GridNode(metadataVec, range_bound);
+                if (openTraining)
+                    grid_node->index_model->getParamFromScoket(12333, grid_node->metadataVec);
+
                 grid_node->parent = replace_node;
                 grid_node->parent_rangeBound = replace_node->range_bound;
                 replace_node->children[j] = grid_node;
@@ -420,6 +430,8 @@ void CellTree::buildCheck(boost::variant<InnerNode *, LeafNode *, GridNode *, in
 
             InnerNode *parent_parent_node = parent_node->parent;
             LeafNode *merge_node = new LeafNode(all_metadata, parent_node->range_bound);
+            if (openTraining)
+                merge_node->index_model->getParamFromScoket(12333, merge_node->metadataVec);
             merge_node->parent = parent_parent_node;
 
             // * delete the GridNode
@@ -485,6 +497,9 @@ void CellTree::buildCheck(boost::variant<InnerNode *, LeafNode *, GridNode *, in
                     splitLeafNodeToGridRegion(grid_node->rangeBound, split_point, split_dim, j);
                 vector<MetaData> metadataVec = splitLeafNodeToGrid(grid_node->metadataVec, range_bound);
                 GridNode *new_grid_node = new GridNode(metadataVec, range_bound);
+
+                if (openTraining)
+                    new_grid_node->index_model->getParamFromScoket(12333, new_grid_node->metadataVec);
                 new_grid_node->parent = parent_node;
                 new_grid_node->parent_rangeBound = grid_node->parent_rangeBound;
                 if (j == 0)
@@ -536,6 +551,9 @@ void CellTree::buildCheck(boost::variant<InnerNode *, LeafNode *, GridNode *, in
 
             GridNode *replaceGridNode = new GridNode(mergeMetaData, mergeRangeBound);
 
+            if (openTraining)
+                replaceGridNode->index_model->getParamFromScoket(12333, replaceGridNode->metadataVec);
+
             parent_node->children[std::min(child_index, selectedGridNodeIdx)] = replaceGridNode;
             parent_node->children.erase(parent_node->children.begin() + std::max(selectedGridNodeIdx, child_index));
             parent_node->split_point.erase(parent_node->split_point.begin() +
@@ -561,11 +579,13 @@ void CellTree::saveSplitData(boost::variant<InnerNode *, LeafNode *, GridNode *,
     else if (root.type() == typeid(LeafNode *))
     {
         LeafNode *node = boost::get<LeafNode *>(root);
+        cout << SPLIT_LEAF_NODE_NUM << " : leaf node -- " << node->getKeysNum() << endl;
         node->saveMetaDataVectoCSV(this->saveSplitPath + to_string(SPLIT_LEAF_NODE_NUM++) + ".csv");
     }
     else if (root.type() == typeid(GridNode *))
     {
         GridNode *node = boost::get<GridNode *>(root);
+        cout << SPLIT_LEAF_NODE_NUM << " : grid node -- " << node->getKeysNum() << endl;
         node->saveMetaDataVectoCSV(this->saveSplitPath + to_string(SPLIT_LEAF_NODE_NUM++) + ".csv");
     }
     else
@@ -616,6 +636,8 @@ vector<array<double, 2> *> &CellTree::kNNSearch(array<double, 2> &query, int k, 
     double cellKeyNum = 0.0;
     vector<double> *t_rangeBound;
 
+    double queryArea = 0.0;
+
     while (node.type() == typeid(InnerNode *))
     {
         InnerNode *innernode = boost::get<InnerNode *>(node);
@@ -625,7 +647,7 @@ vector<array<double, 2> *> &CellTree::kNNSearch(array<double, 2> &query, int k, 
     if (node.type() == typeid(LeafNode *))
     {
         LeafNode *leaf_node = boost::get<LeafNode *>(node);
-        cellArea = leaf_node->cell_area;
+        cellArea = leaf_node->getCellArea();
         cellKeyNum = (double)leaf_node->metadataVec.size();
         t_rangeBound = &(leaf_node->range_bound);
     }
@@ -636,62 +658,62 @@ vector<array<double, 2> *> &CellTree::kNNSearch(array<double, 2> &query, int k, 
         cellKeyNum = (double)grid_node->metadataVec.size();
         t_rangeBound = &(grid_node->rangeBound);
     }
-    double R_bar = sqrt((cellArea * k) / (M_PI * cellKeyNum));
-
-    // for each dimension use r_bar and eq-depth histgoram to estimate the
-    // cardinality of r_bar
-    //
-    array<double, MetaData::dim> p_u;
-    array<double, MetaData::dim> p_i;
-    array<double, MetaData::dim> r_i;
-    array<int, MetaData::dim> hist_index;
-    for (int i = 0; i < MetaData::dim; i++)
-    {
-        // p_u
-        // p_i
-        p_u[i] = cellKeyNum / (((*t_rangeBound)[2 * i + 1] - (*t_rangeBound)[2 * i]) * (double)raw_data.size());
-
-        vector<double> *dim_hist_info = i == 0 ? &this->hist_info_x : &this->hist_info_y;
-        int start = 0;
-        int end = dim_hist_info->size() - 1;
-        while (start < end && (end - start) > 1)
-        {
-            int mid = (start + end) / 2;
-            if ((*dim_hist_info)[mid] <= query[i])
-                start = mid;
-            else
-                end = mid;
-        }
-        hist_index[i] = start;
-        // !!! p_i
-        p_i[i] = 1 / (((*dim_hist_info).size() - 1) *
-                      ((*dim_hist_info)[hist_index[i] + 1] - (*dim_hist_info)[hist_index[i]]));
-        r_i[i] = p_u[i] / p_i[i] * R_bar;
-    }
-
-    double range_R = r_i[0] > r_i[1] ? r_i[0] : r_i[1];
-    vector<array<double, 2> *> temp_result;
+    double R_expand = sqrt((cellArea * k) / cellKeyNum) / 2;
 
     int num_range_query = 0;
 
     while (true)
     {
-        vector<double> range_query = {query[0] - range_R, query[0] + range_R, query[1] - range_R, query[1] + range_R};
-        temp_result.clear();
-        this->DFSCelltree(range_query, temp_result, &this->root, exp_Recorder);
+        // queryArea = 4 * R_expand * R_expand;
+        vector<double> range_query = {query[0] - R_expand, query[0] + R_expand, query[1] - R_expand,
+                                      query[1] + R_expand};
+        sortForKNN sortFun(query);
+        priority_queue<array<double, 2> *, vector<array<double, 2> *>, decltype(sortFun)> temp_result(sortFun);
+        num_range_query++;
+
+        bool inLeafNode = false;
+
+        if (range_query[0] > (*t_rangeBound)[0] && range_query[1] < (*t_rangeBound)[1] &&
+            range_query[2] > (*t_rangeBound)[2] && range_query[3] < (*t_rangeBound)[3])
+
+        {
+            // cout<<"in cell "<<endl;
+            if (node.type() == typeid(LeafNode *))
+            {
+                LeafNode *leaf_node = boost::get<LeafNode *>(node);
+                leaf_node->kNNInNode(range_query, temp_result);
+                // leaf_node->rangeSearch(range_query, temp_result, exp_Recorder);
+            }
+            else if (node.type() == typeid(GridNode *))
+            {
+                GridNode *grid_node = boost::get<GridNode *>(node);
+                grid_node->kNNInNode(range_query, temp_result);
+                // grid_node->rangeSearch(range_query, temp_result, exp_Recorder);
+            }
+        }
+        else
+        {
+            // cout<<"in range. "<<endl;
+            this->kNNDFSCellTree(range_query, temp_result, &this->root);
+        }
+
+        // cout << "range query times: " << num_range_query << " R: " << R_expand
+        //      << " range query size : " << temp_result.size() << endl;
+
         if (temp_result.size() > k)
         {
-            sort(temp_result.begin(), temp_result.end(), sortForKNN(query));
             for (int i = 0; i < k; i++)
             {
-                result.push_back(temp_result[i]);
+                result.push_back(temp_result.top());
+                temp_result.pop();
             }
 
             break;
         }
-        num_range_query++;
-        // cout << "range query times: " << num_range_query << endl;
-        range_R *= 2;
+
+        // double div = temp_result.size() == 0 ? 1 : (double)temp_result.size();
+        // R_expand += sqrt((double)(k) / div) * R_expand;
+        R_expand *= 2;
     }
     exp_Recorder.knnRangeQueryConterAvg += (double)num_range_query;
     // cout << "query" << num_range_query << endl;
@@ -740,7 +762,7 @@ void CellTree::DFSCelltree(vector<double> &query, vector<array<double, 2> *> &re
             return;
         else if (overlapFlag == CONTAIN)
         {
-            for (auto metadata : leafnode->metadataVec)
+            for (auto &metadata : leafnode->metadataVec)
                 result.push_back(metadata.data);
             return;
         }
@@ -758,13 +780,73 @@ void CellTree::DFSCelltree(vector<double> &query, vector<array<double, 2> *> &re
             return;
         else if (overlapFlag == CONTAIN)
         {
-            for (auto metadata : gridnode->metadataVec)
+            for (auto &metadata : gridnode->metadataVec)
                 result.push_back(metadata.data);
             return;
         }
         else if (overlapFlag == INTERSECTION)
         {
             gridnode->rangeSearch(query, result, exp_Recorder);
+            return;
+        }
+    }
+}
+
+void CellTree::kNNDFSCellTree(vector<double> &query,
+                              priority_queue<array<double, 2> *, vector<array<double, 2> *>, sortForKNN> &result,
+                              boost::variant<InnerNode *, LeafNode *, GridNode *, int> root)
+{
+    int overlapFlag = -2;
+    if (root.type() == typeid(InnerNode *))
+    {
+        InnerNode *innernode = boost::get<InnerNode *>(root);
+        overlapFlag = queryCellRealtion(innernode->range_bound, query);
+        if (overlapFlag == DISSOCIATION)
+            return;
+        else if (overlapFlag == CONTAIN)
+        {
+            getAllData(innernode, result);
+            return;
+        }
+        else if (overlapFlag == INTERSECTION)
+        {
+            for (auto child : innernode->children)
+                this->kNNDFSCellTree(query, result, child);
+        }
+    }
+    else if (root.type() == typeid(LeafNode *))
+    {
+        LeafNode *leafnode = boost::get<LeafNode *>(root);
+        overlapFlag = queryCellRealtion(leafnode->range_bound, query);
+        if (overlapFlag == DISSOCIATION)
+            return;
+        else if (overlapFlag == CONTAIN)
+        {
+            for (auto &metadata : leafnode->metadataVec)
+                result.push(metadata.data);
+            return;
+        }
+        else if (overlapFlag == INTERSECTION)
+        {
+            leafnode->kNNInNode(query, result);
+            return;
+        }
+    }
+    else if (root.type() == typeid(GridNode *))
+    {
+        GridNode *gridnode = boost::get<GridNode *>(root);
+        overlapFlag = queryCellRealtion(gridnode->rangeBound, query);
+        if (overlapFlag == DISSOCIATION)
+            return;
+        else if (overlapFlag == CONTAIN)
+        {
+            for (auto &metadata : gridnode->metadataVec)
+                result.push(metadata.data);
+            return;
+        }
+        else if (overlapFlag == INTERSECTION)
+        {
+            gridnode->kNNInNode(query, result);
             return;
         }
     }
@@ -784,26 +866,30 @@ void CellTree::train(boost::variant<InnerNode *, LeafNode *, GridNode *, int> ro
     {
         // load model initial parameter
         LeafNode *node = boost::get<LeafNode *>(root);
-        // cout << "leaf node index :" << TRAIN_LEAF_NODE_NUM;
-        node->index_model->loadParameter(this->modelParamPath + to_string(TRAIN_LEAF_NODE_NUM++) + ".csv");
-        // this->train_pool->submit(node->index_model->buildModel(), );
+        if (node->getKeysNum() <= 2)
+            return;
+        node->index_model->loadParameter(this->modelParamPath + to_string(TRAIN_LEAF_NODE_NUM) + ".csv");
         // node->index_model->buildModel();
         node->index_model->getErrorBound();
-        // cout << "; node error bound: " << node->index_model->error_bound[0] << ", " <<
-        // node->index_model->error_bound[1]
-        //      << " ; node key conter :" << node->getKeysNum() << endl;
+        cout << "leaf node index :" << TRAIN_LEAF_NODE_NUM
+             << "; node error bound: " << node->index_model->error_bound[0] << ", " << node->index_model->error_bound[1]
+             << " ; node key conter :" << node->getKeysNum() << endl;
+        TRAIN_LEAF_NODE_NUM++;
     }
     else if (root.type() == typeid(GridNode *))
     {
         // load model initial parameter
         GridNode *node = boost::get<GridNode *>(root);
-        // cout << "grid node index :" << TRAIN_LEAF_NODE_NUM;
-        node->index_model->loadParameter(this->modelParamPath + to_string(TRAIN_LEAF_NODE_NUM++) + ".csv");
+        if (node->getKeysNum() <= 1)
+            return;
+
+        node->index_model->loadParameter(this->modelParamPath + to_string(TRAIN_LEAF_NODE_NUM) + ".csv");
         // node->index_model->buildModel();zaCVb
         node->index_model->getErrorBound();
-        // cout << "; node error bound: " << node->index_model->error_bound[0] << ", " <<
-        // node->index_model->error_bound[1]
-        //      << " ; node key conter :" << node->getKeysNum() << endl;
+        cout << "grid node index :" << TRAIN_LEAF_NODE_NUM
+             << "; node error bound: " << node->index_model->error_bound[0] << ", " << node->index_model->error_bound[1]
+             << " ; node key conter :" << node->getKeysNum() << endl;
+        TRAIN_LEAF_NODE_NUM++;
     }
     else
     {
@@ -828,6 +914,11 @@ void CellTree::insert(array<double, 2> &point)
         buildCheck = leaf_node->insert(point);
         if (buildCheck)
         {
+            // retrain model
+            // cout << "start retrain! "<< endl;
+            leaf_node->retrainModel();
+            // cout << "leaf error bound: " << leaf_node->index_model->error_bound[0] << " , "
+            //      << leaf_node->index_model->error_bound[1] << endl;
             this->buildCheck(leaf_node, child_index, true);
         }
     }
@@ -837,6 +928,11 @@ void CellTree::insert(array<double, 2> &point)
         buildCheck = grid_node->insert(point);
         if (buildCheck)
         {
+            // retrain model
+            // cout << "start retrain! "<< endl;
+            grid_node->retrainModel();
+            // cout << "grid error bound: " << grid_node->index_model->error_bound[0] << " , "
+            //      << grid_node->index_model->error_bound[1] << endl;
             this->buildCheck(grid_node, child_index, true);
         }
     }
@@ -858,14 +954,14 @@ void CellTree::remove(array<double, 2> &point)
         LeafNode *leaf_node = boost::get<LeafNode *>(node);
         leaf_node->remove(point);
         if (leaf_node->getKeysNum() < removeTh)
-            this->buildCheck(leaf_node, child_index);
+            this->buildCheck(leaf_node, child_index, true);
     }
     else if (node.type() == typeid(GridNode *))
     {
         GridNode *grid_node = boost::get<GridNode *>(node);
         grid_node->remove(point);
         if (grid_node->getKeysNum() < removeTh)
-            this->buildCheck(grid_node, child_index);
+            this->buildCheck(grid_node, child_index, true);
     }
 }
 
@@ -919,6 +1015,39 @@ void getAllData(boost::variant<InnerNode *, LeafNode *, GridNode *, int> root, v
         for (auto &metadata : grid_node->metadataVec)
         {
             result.push_back(metadata.data);
+        }
+    }
+    else
+    {
+        return;
+    }
+}
+
+void getAllData(boost::variant<InnerNode *, LeafNode *, GridNode *, int> root,
+                priority_queue<array<double, 2> *, vector<array<double, 2> *>, sortForKNN> &result)
+{
+    if (root.type() == typeid(InnerNode *))
+    {
+        InnerNode *innernode = boost::get<InnerNode *>(root);
+        for (int i = 0; i < innernode->children.size(); i++)
+        {
+            getAllData(innernode->children[i], result);
+        }
+    }
+    else if (root.type() == typeid(LeafNode *))
+    {
+        LeafNode *leaf_node = boost::get<LeafNode *>(root);
+        for (auto &metadata : leaf_node->metadataVec)
+        {
+            result.push(metadata.data);
+        }
+    }
+    else if (root.type() == typeid(GridNode *))
+    {
+        GridNode *grid_node = boost::get<GridNode *>(root);
+        for (auto &metadata : grid_node->metadataVec)
+        {
+            result.push(metadata.data);
         }
     }
     else

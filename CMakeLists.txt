@@ -40,3 +40,7 @@ target_link_libraries(CellTree "${TORCH_LIBRARIES}" ENTITY)
 # target_link_libraries(CellTree_Debug "${TORCH_LIBRARIES}" ENTITY)
 target_link_libraries(CellTree_split "${TORCH_LIBRARIES}" ENTITY)
 target_link_libraries(test_c "${TORCH_LIBRARIES}" ENTITY)
+
+
+add_executable(remove_exp removeExp.cpp ${SRC_DIR})
+target_link_libraries(remove_exp "${TORCH_LIBRARIES}" ENTITY)
