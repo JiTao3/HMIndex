@@ -3,8 +3,8 @@ import struct
 import torch
 from model import LeoModel
 
-leoModelPath = "/home/jitao/leo_index/log/skewed/skewed1.pt"
-# leoModelPath = "/home/jitao/leo_index/log/osm_cn/osm_cn_1.pt"
+leoModelPath = ""
+# leoModelPath = ""
 device = torch.device("cuda:4" if torch.cuda.is_available() else "cpu")
 
 

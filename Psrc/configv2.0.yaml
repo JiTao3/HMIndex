@@ -1,0 +1,81 @@
+tiger_1:
+  batch_size: 32
+  K: 1024
+  embedding_size: 1
+  hidden_size: 256
+  drop_out: 0.3
+  inner_lr: 1
+  fintune_lr: 0.005
+  cuda: True
+  out_lr: 1.0e-5
+  kl_weight: 0.001
+  encoder_penalty_weight: 1.0e-9
+  orthogonality_penalty_weight: 0.1
+  l2_penalty_weight: 1.0e-8
+  inner_update_epoch: 3
+  out_update_epoch: 5
+  total_step: 20000
+  clip_vale: 0.1
+  split_data: ""
+
+uniform_1:
+  batch_size: 32
+  K: 1024
+  embedding_size: 1
+  hidden_size: 256
+  drop_out: 0.3
+  inner_lr: 1
+  fintune_lr: 0.005
+  cuda: True
+  out_lr: 1.0e-5
+  kl_weight: 0.001
+  encoder_penalty_weight: 1.0e-9
+  orthogonality_penalty_weight: 0.1
+  l2_penalty_weight: 1.0e-8
+  inner_update_epoch: 3
+  out_update_epoch: 5
+  total_step: 20000
+  clip_vale: 0.1
+  split_data: ""
+
+
+skewed_1:
+  batch_size: 32
+  K: 1024
+  embedding_size: 1
+  hidden_size: 256
+  drop_out: 0.3
+  inner_lr: 1
+  fintune_lr: 0.005
+  cuda: True
+  out_lr: 1.0e-5
+  kl_weight: 0.001
+  encoder_penalty_weight: 1.0e-9
+  orthogonality_penalty_weight: 0.1
+  l2_penalty_weight: 1.0e-8
+  inner_update_epoch: 3
+  out_update_epoch: 5
+  total_step: 20000
+  clip_vale: 0.1
+  split_data: ""
+
+
+osm_ne_us_1:
+  batch_size: 32
+  K: 1024
+  embedding_size: 1
+  hidden_size: 256
+  drop_out: 0.3
+  inner_lr: 1
+  fintune_lr: 0.005
+  cuda: True
+  out_lr: 1.0e-5
+  kl_weight: 0.001
+  encoder_penalty_weight: 1.0e-9
+  orthogonality_penalty_weight: 0.1
+  l2_penalty_weight: 1.0e-8
+  inner_update_epoch: 3
+  out_update_epoch: 5
+  total_step: 20000
+  clip_vale: 0.1
+  split_data: ""

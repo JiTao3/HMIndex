@@ -175,42 +175,42 @@ def compareErrorBound(dataSetName):
     metaParamPath = ""
 
     if dataSetName == "osm_cn":
-        splitDataPath = "/data/jitao/dataset/OSM/split2/"
+        splitDataPath = ""
         randomParamPath = (
-            "/data/jitao/dataset/OSM/random_trained_model_param_for_split2/"
+            ""
         )
         metaParamPath = (
-            "/data/jitao/dataset/OSM/new_trained_model_param_for_split2/"
+            ""
         )
     elif dataSetName == "osm_ne_us":
-        splitDataPath = "/data/jitao/dataset/OSM_US_NE/split/"
-        randomParamPath = "/data/jitao/dataset/OSM_US_NE/random_trained_model_param_for_split/"
+        splitDataPath = ""
+        randomParamPath = ""
         metaParamPath = (
-            "/data/jitao/dataset/OSM_US_NE/trained_param_for_split_conv/"
+            ""
         )
     elif dataSetName == "tiger":
-        splitDataPath = "/data/jitao/dataset/Tiger/split/"
+        splitDataPath = ""
         randomParamPath = (
-            "/data/jitao/dataset/Tiger/random_trained_model_param_for_split/"
+            ""
         )
         metaParamPath = (
-            "/data/jitao/dataset/Tiger/trained_param_for_split_conv/"
+            ""
         )
     elif dataSetName == "uniform":
-        splitDataPath = "/data/jitao/dataset/uniform/split/"
+        splitDataPath = ""
         randomParamPath = (
-            "/data/jitao/dataset/uniform/random_trained_model_param_for_split/"
+            ""
         )
         metaParamPath = (
-            "/data/jitao/dataset/uniform/trained_param_for_split_conv/"
+            ""
         )
     elif dataSetName == "skewed":
-        splitDataPath = "/data/jitao/dataset/skewed/split/"
+        splitDataPath = ""
         randomParamPath = (
-            "/data/jitao/dataset/skewed/random_trained_model_param_for_split/"
+            ""
         )
         metaParamPath = (
-            "/data/jitao/dataset/skewed/trained_param_for_split_conv/"
+            ""
         )
     else:
         print("error dataset name")
@@ -245,23 +245,23 @@ def compareErrorBound(dataSetName):
 
 
 # if __name__ == "__main__":
-#     model_param_path = "/data/jitao/dataset/OSM/trained_modelParam_for_split2_largeBatch/1385.csv"
-#     raw_data_path = "/data/jitao/dataset/OSM/split2/1385.csv"
+#     model_param_path = ""
+#     raw_data_path = ""
 #     # trainRandomInitialModle(raw_data_path, model_param_path, 2)
 #     model_error(raw_data_path, model_param_path)
 # model_param_path = (
-#     "/data/jitao/dataset/OSM_US_NE/initial_model_param_for_split/1.csv"
+#     ""
 # )
-# raw_data_path = "/data/jitao/dataset/OSM_US_NE/split/1.csv"
-# save_path = "/data/jitao/dataset/OSM_US_NE/trained_modelParam_for_split/t.csv"
+# raw_data_path = ""
+# save_path = ""
 # trainMetaParam(model_param_path, raw_data_path, save_path, 1)
 
 
 if __name__ == "__main__":
 
     # trainMetaParam(
-    #     "/data/jitao/dataset/OSM/new_init_model_parameter_for_split_2/9387.csv",
-    #     "/data/jitao/dataset/OSM/split2/9387.csv",
+    #     "",
+    #     "",
     #     "",
     #     1,
     # )
@@ -269,12 +269,12 @@ if __name__ == "__main__":
     torch.multiprocessing.set_start_method("spawn")
 
     # osm_cn_model_param_path = (
-    #     "/data/jitao/dataset/OSM/new_trained_model_param_for_split2/"
+    #     ""
     # )
-    # osm_cn_raw_data_path = "/data/jitao/dataset/OSM/split2/"
-    # osm_cn_save_path = "/data/jitao/dataset/OSM/trained_modelParam_for_split2/"
+    # osm_cn_raw_data_path = ""
+    # osm_cn_save_path = ""
     # osm_cn_save_random_path = (
-    #     "/data/jitao/dataset/OSM/trained_modelParam_for_split2_noac2/"
+    #     ""
     # )
 
     dataset_name = sys.argv[1]
@@ -283,61 +283,61 @@ if __name__ == "__main__":
     # compareErrorBound(dataset_name)
 
     # osm_ne_us_model_param_path = (
-    #     "/data/jitao/dataset/OSM_US_NE/initial_param_for_split_conv/"
+    #     ""
     # )
 
     raw_data_path = ""
     save_data_path = ""
 
     if dataset_name == "osm_ne_us":
-        raw_data_path = "/data/jitao/dataset/OSM_US_NE/split_no_db/"
+        raw_data_path = ""
         save_random_path = (
-            "/data/jitao/dataset/OSM_US_NE/trained_param_for_split_no_db/"
+            ""
         )
     elif dataset_name == "tiger":
-        raw_data_path = "/data/jitao/dataset/Tiger/split_no_db/"
+        raw_data_path = ""
         save_random_path = (
-            "/data/jitao/dataset/Tiger/trained_param_for_split_no_db/"
+            ""
         )
     elif dataset_name == "uniform":
-        raw_data_path = "/data/jitao/dataset/uniform/split_no_db/"
+        raw_data_path = ""
         save_random_path = (
-            "/data/jitao/dataset/uniform/trained_param_for_split_no_db/"
+            ""
         )
     elif dataset_name == "skewed":
-        raw_data_path = "/data/jitao/dataset/skewed/split_no_db/"
+        raw_data_path = ""
         save_random_path = (
-            "/data/jitao/dataset/skewed/trained_param_for_split_no_db/"
+            ""
         )
     else:
         print("error distribution")
 
         # osm_ne_us_save_path = (
-        #     "/data/jitao/dataset/OSM_US_NE/trained_param_for_split_conv/"
+        #     ""
         # )
     # tiger_model_param_path = (
-    #     "/data/jitao/dataset/Tiger/initial_model_param_for_split/"
+    #     ""
     # )
-    # tiger_raw_data_path = "/data/jitao/dataset/Tiger/split/"
+    # tiger_raw_data_path = ""
     # tiger_save_path = (
-    #     "/data/jitao/dataset/Tiger/random_trained_model_param_for_split/"
+    #     ""
     # )
     # tiger_model_param_path = (
-    #     "/data/jitao/dataset/Tiger/initial_param_for_split_conv/"
+    #     ""
     # )
     # uniform_model_param_path = (
-    #     "/data/jitao/dataset/uniform/initial_param_for_split_conv/"
+    #     ""
     # )
-    # uniform_raw_data_path = "/data/jitao/dataset/uniform/split/"
+    # uniform_raw_data_path = ""
     # uniform_save_path = (
-    #     "/data/jitao/dataset/uniform/random_trained_model_param_for_split/"
+    #     ""
     # )
     # skewed_model_param_path = (
-    #     "/data/jitao/dataset/skewed/initial_param_for_split_conv/"
+    #     ""
     # )
-    # skewed_raw_data_path = "/data/jitao/dataset/skewed/split/"
+    # skewed_raw_data_path = ""
     # skewed_save_path = (
-    #     "/data/jitao/dataset/skewed/random_trained_model_param_for_split/"
+    #     ""
     # )
 
     data_name_list = os.listdir(raw_data_path)
@@ -362,11 +362,11 @@ if __name__ == "__main__":
     training_pool.join()
 
     # skewed_model_param_path = (
-    #     "/data/jitao/dataset/skewed/initial_model_param_for_split/"
+    #     ""
     # )
-    # skewed_raw_data_path = "/data/jitao/dataset/skewed/split/"
+    # skewed_raw_data_path = ""
     # skewed_save_path = (
-    #     "/data/jitao/dataset/skewed/trained_modelParam_for_split/"
+    #     ""
     # )
 
     # dataset_split_path = ""
@@ -374,21 +374,21 @@ if __name__ == "__main__":
 
     # if dataset_name == "osm_ne_us":
     #     dataset_split_path = osm_ne_us_raw_data_path
-    #     dataset_save_random_path = "/data/jitao/dataset/OSM_US_NE/random_trained_model_param_for_split/"
+    #     dataset_save_random_path = ""
     # elif dataset_name == "tiger":
     #     dataset_split_path = tiger_raw_data_path
     #     dataset_save_random_path = (
-    #         "/data/jitao/dataset/Tiger/random_trained_model_param_for_split/"
+    #         ""
     #     )
     # elif dataset_name == "uniform":
     #     dataset_split_path = uniform_raw_data_path
     #     dataset_save_random_path = (
-    #         "/data/jitao/dataset/uniform/random_trained_model_param_for_split/"
+    #         ""
     #     )
     # elif dataset_name == "skewed":
     #     dataset_split_path = skewed_raw_data_path
     #     dataset_save_random_path = (
-    #         "/data/jitao/dataset/skewed/random_trained_model_param_for_split/"
+    #         ""
     #     )
     # else:
     #     "error data set name"

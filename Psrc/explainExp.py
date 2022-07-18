@@ -35,4 +35,4 @@ def explainExpLog(log_path):
         
 
 if __name__=='__main__':
-    explainExpLog("/home/jitao/cell_tree/log/randon_param_training_osm_cn_split2.log")
+    explainExpLog("")

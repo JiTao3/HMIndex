@@ -35,27 +35,13 @@ void expInsert();
 
 int main(int argc, char *argv[])
 {
-    // cout << argv[1] << endl;
-    // cout << argv[2] << endl;
-    // cout << argv[3] << endl;
-    // string s1 = "/data/jitao/dataset/OSM/osm.csv";
-    // string s2 = "/data/jitao/dataset/OSM/new_trained_model_param_for_split2/";
-    // expSplitDataSave(argv[1], argv[2]);
-    // expSplitDataSave(argv[1], argv[2]);
 
-    // expPointSearch(argv[1]);
-    // expPointSearch("osm_ne_us");
-    // string s1 = "osm_cn";
-    // string s2 = "0.0001";
-    // string s3 = "0.25";
-    // expRangeSearch(argv[1]);
-    // expRangeSearch(s1);
-    // expRangeSearch("tiger");
+    expPointSearch(argv[1]);
+
+    expRangeSearch(argv[1]);
 
     expkNNSearch(argv[1]);
-    // expkNNSearch("tiger");
-
-    // expInsert();
+    
     cout << "finish!" << endl;
 }
 
@@ -93,37 +79,37 @@ void expPointSearch(string dataset)
     if (dataset == "uniform")
     {
         data_space_bound = {0, 1, 0, 1};
-        csv_path = "/data/jitao/dataset/uniform/2d_len_1e8_seed_1.csv";
-        model_param_path = "/data/jitao/dataset/uniform/trained_param_for_split_no_db/";
-        query_path = "/data/jitao/dataset/uniform/point_query_sample_10w.csv";
+        csv_path = "";
+        model_param_path = "";
+        query_path = "";
     }
     else if (dataset == "skewed")
     {
         data_space_bound = {0, 1, 0, 1};
-        csv_path = "/data/jitao/dataset/skewed/2d_len_1e8_seed_1.csv";
-        model_param_path = "/data/jitao/dataset/skewed/trained_param_for_split_no_db/";
-        query_path = "/data/jitao/dataset/skewed/point_query_sample_10w.csv";
+        csv_path = "";
+        model_param_path = "";
+        query_path = "";
     }
     else if (dataset == "osm_cn")
     {
         data_space_bound = {70.9825433, 142.2560836, 4.999728700, 54.35880621};
-        csv_path = "/data/jitao/dataset/OSM/osm.csv";
-        model_param_path = "/data/jitao/dataset/OSM/new_trained_model_param_for_split2/";
+        csv_path = "";
+        model_param_path = "";
     }
     else if (dataset == "osm_ne_us")
     {
         data_space_bound = {-81.79535869999985, -65.27891709999955, 38.43836500000005, 45.98917950000055};
-        csv_path = "/data/jitao/dataset/OSM_US_NE/20_outliers_lon_lat.csv";
-        model_param_path = "/data/jitao/dataset/OSM_US_NE/trained_param_for_split_no_db/";
-        query_path = "/data/jitao/dataset/OSM_US_NE/point_query_sample_10w.csv";
+        csv_path = "";
+        model_param_path = "";
+        query_path = "";
     }
     else if (dataset == "tiger")
     {
         range_split_num = 40;
         data_space_bound = {-90.3100275, -64.566563, 17.627786999999994, 47.457235};
-        csv_path = "/data/jitao/dataset/Tiger/center_tiger_east_17m.txt";
-        model_param_path = "/data/jitao/dataset/Tiger/trained_param_for_split_no_db/";
-        query_path = "/data/jitao/dataset/Tiger/point_query_sample_10w.csv";
+        csv_path = "";
+        model_param_path = "";
+        query_path = "";
     }
     else
     {
@@ -139,9 +125,9 @@ void expPointSearch(string dataset)
     cell_tree->buildTree(cell_tree->cell_bound_idx, &cell_tree->root, 0);
     cout << "build end" << endl;
 
-    // cout << "build check begin" << endl;
-    // cell_tree->buildCheck(&cell_tree->root, 0);
-    // cout << "build check end" << endl;
+    cout << "build check begin" << endl;
+    cell_tree->buildCheck(&cell_tree->root, 0);
+    cout << "build check end" << endl;
 
     cout << "load model parameter begin" << endl;
     cell_tree->modelParamPath = model_param_path;
@@ -182,39 +168,39 @@ void expRangeSearch(string dataset)
     if (dataset == "uniform")
     {
         data_space_bound = {0, 1, 0, 1};
-        csv_path = "/data/jitao/dataset/uniform/2d_len_1e8_seed_1.csv";
-        model_param_path = "/data/jitao/dataset/uniform/trained_param_for_split_no_db/";
+        csv_path = "";
+        model_param_path = "";
 
-        rangeQueryPrefix = "/data/jitao/dataset/uniform/range_query/2d_len_1e8_seed_1_1000_";
+        rangeQueryPrefix = "";
     }
     else if (dataset == "skewed")
     {
         data_space_bound = {0, 1, 0, 1};
-        csv_path = "/data/jitao/dataset/skewed/2d_len_1e8_seed_1.csv";
-        model_param_path = "/data/jitao/dataset/skewed/trained_param_for_split_no_db/";
-        rangeQueryPrefix = "/data/jitao/dataset/skewed/range_query/2d_len_1e8_seed_1_1000_";
+        csv_path = "";
+        model_param_path = "";
+        rangeQueryPrefix = "";
     }
     else if (dataset == "osm_cn")
     {
         data_space_bound = {70.9825433, 142.2560836, 4.999728700, 54.35880621};
-        csv_path = "/data/jitao/dataset/OSM/osm.csv";
-        model_param_path = "/data/jitao/dataset/OSM/new_trained_model_param_for_split2/";
-        rangeQueryPrefix = "/data/jitao/dataset/OSM/range_query/osm_1000_";
+        csv_path = "";
+        model_param_path = "";
+        rangeQueryPrefix = "";
     }
     else if (dataset == "osm_ne_us")
     {
         data_space_bound = {-81.79535869999985, -65.27891709999955, 38.43836500000005, 45.98917950000055};
-        csv_path = "/data/jitao/dataset/OSM_US_NE/20_outliers_lon_lat.csv";
-        model_param_path = "/data/jitao/dataset/OSM_US_NE/trained_param_for_split_no_db/";
-        rangeQueryPrefix = "/data/jitao/dataset/OSM_US_NE/range_query/20_outliers_lon_lat_1000_";
+        csv_path = "";
+        model_param_path = "";
+        rangeQueryPrefix = "";
     }
     else if (dataset == "tiger")
     {
         range_split_num = 40;
         data_space_bound = {-90.3100275, -64.566563, 17.627786999999994, 47.457235};
-        csv_path = "/data/jitao/dataset/Tiger/center_tiger_east_17m.txt";
-        model_param_path = "/data/jitao/dataset/Tiger/trained_param_for_split_no_db/";
-        rangeQueryPrefix = "/data/jitao/dataset/Tiger/range_query/center_tiger_east_17m_1000_";
+        csv_path = "";
+        model_param_path = "";
+        rangeQueryPrefix = "";
     }
     else
     {
@@ -230,9 +216,9 @@ void expRangeSearch(string dataset)
     cell_tree->buildTree(cell_tree->cell_bound_idx, &cell_tree->root, 0);
     cout << "build end" << endl;
 
-    // cout << "build check begin" << endl;
-    // cell_tree->buildCheck(&cell_tree->root, 0);
-    // cout << "build check end" << endl;
+    cout << "build check begin" << endl;
+    cell_tree->buildCheck(&cell_tree->root, 0);
+    cout << "build check end" << endl;
 
     cout << "load model parameter begin" << endl;
     cell_tree->modelParamPath = model_param_path;
@@ -283,41 +269,41 @@ void expkNNSearch(string dataset)
     if (dataset == "uniform")
     {
         data_space_bound = {0, 1, 0, 1};
-        csv_path = "/data/jitao/dataset/uniform/2d_len_1e8_seed_1.csv";
-        model_param_path = "/data/jitao/dataset/uniform/trained_param_for_split_no_db/";
+        csv_path = "";
+        model_param_path = "";
         queryPoints =
-            knnQueryFileReader->get_array_points("/data/jitao/dataset/uniform/point_query_sample_10w.csv", ",");
+            knnQueryFileReader->get_array_points("", ",");
     }
     else if (dataset == "skewed")
     {
         data_space_bound = {0, 1, 0, 1};
-        csv_path = "/data/jitao/dataset/skewed/2d_len_1e8_seed_1.csv";
-        model_param_path = "/data/jitao/dataset/skewed/trained_param_for_split_no_db/";
+        csv_path = "";
+        model_param_path = "";
         queryPoints =
-            knnQueryFileReader->get_array_points("/data/jitao/dataset/skewed/point_query_sample_10w.csv", ",");
+            knnQueryFileReader->get_array_points("", ",");
     }
     else if (dataset == "osm_cn")
     {
         data_space_bound = {70.9825433, 142.2560836, 4.999728700, 54.35880621};
-        csv_path = "/data/jitao/dataset/OSM/osm.csv";
-        model_param_path = "/data/jitao/dataset/OSM/trained_param_for_split_conv/";
-        queryPoints = knnQueryFileReader->get_array_points("/data/jitao/dataset/OSM/point_query_sample_10w.csv", ",");
+        csv_path = "";
+        model_param_path = "";
+        queryPoints = knnQueryFileReader->get_array_points("", ",");
     }
     else if (dataset == "osm_ne_us")
     {
         data_space_bound = {-81.79535869999985, -65.27891709999955, 38.43836500000005, 45.98917950000055};
-        csv_path = "/data/jitao/dataset/OSM_US_NE/20_outliers_lon_lat.csv";
-        model_param_path = "/data/jitao/dataset/OSM_US_NE/trained_param_for_split_no_db/";
+        csv_path = "";
+        model_param_path = "";
         queryPoints =
-            knnQueryFileReader->get_array_points("/data/jitao/dataset/OSM_US_NE/point_query_sample_10w.csv", ",");
+            knnQueryFileReader->get_array_points("", ",");
     }
     else if (dataset == "tiger")
     {
         range_split_num = 40;
         data_space_bound = {-90.3100275, -64.566563, 17.627786999999994, 47.457235};
-        csv_path = "/data/jitao/dataset/Tiger/center_tiger_east_17m.txt";
-        model_param_path = "/data/jitao/dataset/Tiger/trained_param_for_split_no_db/";
-        queryPoints = knnQueryFileReader->get_array_points("/data/jitao/dataset/Tiger/point_query_sample_10w.csv", ",");
+        csv_path = "";
+        model_param_path = "";
+        queryPoints = knnQueryFileReader->get_array_points("", ",");
     }
     else
     {
@@ -338,9 +324,9 @@ void expkNNSearch(string dataset)
     cell_tree->buildTree(cell_tree->cell_bound_idx, &cell_tree->root, 0);
     cout << "build end" << endl;
 
-    // cout << "build check begin" << endl;
-    // cell_tree->buildCheck(&cell_tree->root, 0);
-    // cout << "build check end" << endl;
+    cout << "build check begin" << endl;
+    cell_tree->buildCheck(&cell_tree->root, 0);
+    cout << "build check end" << endl;
 
     cout << "load model parameter begin : " << model_param_path << endl;
     cell_tree->modelParamPath = model_param_path;
@@ -385,8 +371,8 @@ void expInsert()
     vector<double> data_space_bound;
 
     data_space_bound = {0, 1, 0, 1};
-    csv_path = "/data/jitao/dataset/skewed/2d_len_1e8_seed_1.csv";
-    model_param_path = "/data/jitao/dataset/skewed/trained_modelParam_for_split/";
+    csv_path = "";
+    model_param_path = "";
 
     string raw_data_path = csv_path;
     cout << "raw data path: " << raw_data_path << endl;
@@ -411,17 +397,17 @@ void expInsert()
 
     long insertTimeconsume = 0;
 
-    insertPoints = insertFileReader->get_array_points("/data/jitao/dataset/skewed/insert/2d_len_0.4_seed_1.csv", ",");
+    insertPoints = insertFileReader->get_array_points("", ",");
     cout << "-------------------- start query insert size * " << 0.4 << " * ---------------------" << endl;
     vector<array<double, 2> *> result;
     int insertidx = 0;
 
     FileReader *pointQueryFileReader = new FileReader();
     vector<array<double, 2>> queryPoints =
-        pointQueryFileReader->get_array_points("/data/jitao/dataset/skewed/point_query_sample_10w.csv", ",");
+        pointQueryFileReader->get_array_points("", ",");
     cout << "read finish： " << queryPoints.size() << endl;
 
-    string rangeQueryPrefix = "/data/jitao/dataset/skewed/range_query/2d_len_1e8_seed_1_1000_";
+    string rangeQueryPrefix = "";
     string windowSize = "0.01";
     string aspectRatio = "1";
 
@@ -508,8 +494,8 @@ void expRemove()
     vector<double> data_space_bound;
 
     data_space_bound = {0, 1, 0, 1};
-    csv_path = "/data/jitao/dataset/skewed/2d_len_1e8_seed_1.csv";
-    model_param_path = "/data/jitao/dataset/skewed/trained_modelParam_for_split/";
+    csv_path = "";
+    model_param_path = "";
 
     string raw_data_path = csv_path;
     cout << "raw data path: " << raw_data_path << endl;
@@ -535,14 +521,14 @@ void expRemove()
     long insertTimeconsume = 0;
     long pointTimeconsume = 0;
 
-    removePoints = insertFileReader->get_array_points("/data/jitao/dataset/skewed/remove/remove0.4.csv", ",");
+    removePoints = insertFileReader->get_array_points("", ",");
     cout << "-------------------- start query insert size * " << 0.4 << " * ---------------------" << endl;
     vector<array<double, 2> *> result;
     int removeidx = 0;
 
     FileReader *pointQueryFileReader = new FileReader();
     vector<array<double, 2>> queryPoints =
-        pointQueryFileReader->get_array_points("/data/jitao/dataset/skewed/point_query_sample_10w.csv", ",");
+        pointQueryFileReader->get_array_points("", ",");
     cout << "read finish： " << queryPoints.size() << endl;
 
     for (auto removePoint : removePoints)

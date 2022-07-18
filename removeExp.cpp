@@ -29,8 +29,8 @@ void expRemove()
     int range_split_num = 100;
 
     vector<double> data_space_bound = {0, 1, 0, 1};
-    csv_path = "/data/jitao/dataset/skewed/2d_len_1e8_seed_1.csv";
-    model_param_path = "/data/jitao/dataset/skewed/trained_modelParam_for_split/";
+    csv_path = "";
+    model_param_path = "";
 
     string raw_data_path = csv_path;
     cout << "raw data path: " << raw_data_path << endl;
@@ -55,7 +55,7 @@ void expRemove()
 
     long removeTimeconsume = 0;
 
-    removePoints = insertFileReader->get_array_points("/data/jitao/dataset/skewed/remove/remove0.4.csv", ",");
+    removePoints = insertFileReader->get_array_points("", ",");
     cout << "-------------------- start query remove size * " << 0.4 << " * ---------------------" << endl;
     cout << "-------------------- start query remove size * " << removePoints.size() << " * ---------------------"
          << endl;
@@ -64,7 +64,7 @@ void expRemove()
 
     FileReader *pointQueryFileReader = new FileReader();
     vector<array<double, 2>> queryPoints =
-        pointQueryFileReader->get_array_points("/data/jitao/dataset/skewed/point_query_sample_10w.csv", ",");
+        pointQueryFileReader->get_array_points("", ",");
     cout << "read finish： " << queryPoints.size() << endl;
 
     for (auto removePoint : removePoints)
@@ -112,8 +112,8 @@ void expInsert()
     vector<double> data_space_bound;
 
     data_space_bound = {0, 1, 0, 1};
-    csv_path = "/data/jitao/dataset/skewed/2d_len_1e8_seed_1.csv";
-    model_param_path = "/data/jitao/dataset/skewed/trained_param_for_split_conv/";
+    csv_path = "";
+    model_param_path = "";
 
     string raw_data_path = csv_path;
     cout << "raw data path: " << raw_data_path << endl;

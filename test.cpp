@@ -13,8 +13,8 @@ using namespace std;
 void testLeafNode()
 {
     FileReader file_reader;
-    vector<array<double, 2>> points = file_reader.get_array_points("/data/jitao/dataset/Tiger/split2/117.csv", ",");
-    vector<double> mapvalVec = file_reader.get_mapval("/data/jitao/dataset/Tiger/split2/117.csv", ",");
+    vector<array<double, 2>> points = file_reader.get_array_points("", ",");
+    vector<double> mapvalVec = file_reader.get_mapval("", ",");
     vector<MetaData> metadataVec;
     for (int i = 0; i < points.size(); i++)
     {
@@ -24,7 +24,7 @@ void testLeafNode()
     }
     vector<double> range_bound = {0.780022, 0.790012, 0.33379, 0.351717}; // 126.543,44.2756
     LeafNode *leafnode = new LeafNode(metadataVec, range_bound);
-    leafnode->index_model->loadParameter("/data/jitao/dataset/Tiger/trained_param_for_split_conv/117.csv");
+    leafnode->index_model->loadParameter("");
     leafnode->index_model->getErrorBound();
 
     cout << "model error:" << leafnode->index_model->error_bound[0] << " " << leafnode->index_model->error_bound[1]

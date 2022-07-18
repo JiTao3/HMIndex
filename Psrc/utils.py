@@ -61,36 +61,36 @@ def generate_all_model_initial_parameter(data_path, model_path, save_path):
 
 if __name__ == "__main__":
     # leo_cal_weight(
-    #     "/home/jitao/leo_index/model/osm_train2.pt",
+    #     "",
     #     [0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
     # )
     # generate_all_model_initial_parameter(
-    #     "/data/jitao/dataset/OSM/split1/",
-    #     "/home/jitao/leo_index/model/osm_train9.pt",
-    #     "/data/jitao/dataset/OSM/model_parameter1/",
+    #     "",
+    #     "",
+    #     "",
     # )
     # generate_all_model_initial_parameter(
-    #     "/data/jitao/dataset/OSM_US_NE/split/",
-    #     "/home/jitao/leo_index/log/osm_en_us/osm_en_usosm_train17.pt",
-    #     "/data/jitao/dataset/OSM_US_NE/model_parameter/",
+    #     "",
+    #     "",
+    #     "",
     # )
     # generate_all_model_initial_parameter(
-    #     "/data/jitao/dataset/OSM_US_NE/split/",
-    #     "/home/jitao/leo_index/log/osm_en_us/osm_en_us_1.pt",
-    #     "/data/jitao/dataset/OSM_US_NE/initial_model_param_for_split/",
+    #     "",
+    #     "",
+    #     "",
     # )
     generate_all_model_initial_parameter(
-        "/data/jitao/dataset/Tiger/split/",
-        "/home/jitao/leo_index/log/tiger/tiger_1.pt",
-        "/data/jitao/dataset/Tiger/initial2_model_param_for_split/",
+        "",
+        "",
+        "",
     )
     # generate_all_model_initial_parameter(
-    #     "/data/jitao/dataset/uniform/split/",
-    #     "/home/jitao/leo_index/log/uniform/uniform1.pt",
-    #     "/data/jitao/dataset/uniform/initial_model_param_for_split/",
+    #     "",
+    #     "",
+    #     "",
     # )
     # generate_all_model_initial_parameter(
-    #     "/data/jitao/dataset/skewed/split/",
-    #     "/home/jitao/leo_index/log/skewed/skewed1.pt",
-    #     "/data/jitao/dataset/skewed/initial_model_param_for_split/",
+    #     "",
+    #     "",
+    #     "",
     # )

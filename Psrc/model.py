@@ -185,12 +185,12 @@ def calcu_map_val(data):
 
 if __name__ == "__main__":
     model = torch.load("model/simple_train_1k_1.pt", map_location=device)
-    raw_data = np.load("/home/jitao/test/2d_len_10000_seed_1.npy")
+    raw_data = np.load("")
     map_vals_l = [calcu_map_val(data) for data in raw_data]
     map_vals_l.sort()
     input = torch.FloatTensor(map_vals_l).to(device)
     input = input.view(1, input.shape[-1], 1)
     weight = model.encode_decode(input)
     print(weight)
-    torch.save(weight, "/home/jitao/test/model/leo_model_weight.pt")
+    torch.save(weight, "")
     print(1)
