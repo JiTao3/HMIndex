@@ -28,7 +28,9 @@ include_directories("$yourpath/eigen-3.4.0/")
 ### Buile the DB-Tree and Save each leaf node.
 
 ```bash
-cmake
+cd build 
+cmake .. 
+make 
 ./build/DBTree $datasetpath/dataset/OSM/osm.csv $savepath/dataset/OSM/split2/
 ```
 
@@ -88,6 +90,9 @@ If you want to build and train the model at the same time, You can call `void ge
 Here is an example of an experiment with a uniform distributed dataset and queries.
 
 ```bash
+cd build 
+cmake .. 
+make 
 ./build/HIndex uniform >> log/uniform_v1.log 
 ```
 
