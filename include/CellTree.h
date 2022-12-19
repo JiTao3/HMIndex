@@ -84,4 +84,6 @@ class CellTree
 
     void insert(array<double, 2> &point);
     void remove(array<double, 2> &point);
+
+    double travleAverageHeight();
 };

@@ -13,7 +13,7 @@
 using namespace std;
 
 const int modelInputSize = 1;
-const int modelHidenSize = 100;
+const int modelHidenSize = 50;
 const int modelOutputSize = 1;
 
 class NNDataSet : public torch::data::Dataset<NNDataSet>
@@ -40,20 +40,20 @@ struct NNModel : torch::nn::Module
         // hiden_size = hiden_s;
         // output_size = hiden_s;
         input = register_module("input_l", torch::nn::Linear(input_s, hiden_s));
-        ac_f1 = register_module("ac_f1", torch::nn::LeakyReLU());
+        ac_f1 = register_module("ac_f1", torch::nn::ReLU());
         hiden = register_module("hiden_l", torch::nn::Linear(hiden_s, output_s));
-        ac_f2 = register_module("ac_f2", torch::nn::LeakyReLU());
+        // ac_f2 = register_module("ac_f2", torch::nn::LeakyReLU());
     }
 
     torch::Tensor forward(torch::Tensor x)
     {
         x = ac_f1(input->forward(x));
-        x = ac_f2(hiden->forward(x));
+        x = hiden->forward(x);
         return x;
     }
 
     torch::nn::Linear input{nullptr}, hiden{nullptr};
-    torch::nn::LeakyReLU ac_f1, ac_f2;
+    torch::nn::ReLU ac_f1, ac_f2;
     // int input_size, hiden_size, output_size;
 };
 

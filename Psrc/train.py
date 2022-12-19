@@ -2,7 +2,7 @@ from statistics import mean
 import sys
 import os
 import torch
-from tqdm import tqdm
+# from tqdm import tqdm
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader, dataloader
 

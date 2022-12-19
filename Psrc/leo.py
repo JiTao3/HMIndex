@@ -6,7 +6,7 @@ from train_dataset import loadAllSplitIndexTask, get_batch
 
 # from torchmeta.utils.data import BatchMetaDataLoader
 
-device = torch.device("cuda:4" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 
 
 class LEO:
@@ -39,7 +39,6 @@ class LEO:
         self.fintune_lr = fintune_lr
         self._cuda = cuda
         self.model = LeoModel(
-            embedding_size=self.embedding_size,
             hidden_size=self.hidden_size,
             drop_out=self.drop_out,
             inner_lr=self.inner_lr,
@@ -68,7 +67,7 @@ class LEO:
 
     def run_batch(self, batch, step, train=True):
         # inner_training (inner loop)
-        latents, kl_div, encoder_penalty = self.meta_train_batch(
+        latents, encoder_penalty = self.meta_train_batch(
             batch["train"]["input"], batch["train"]["target"]
         )
         # inner_fintune & task-validate
@@ -86,20 +85,18 @@ class LEO:
 
         total_loss = (
             val_loss
-            + self.kl_weight * kl_div
             + self.encoder_penalty_weight * encoder_penalty
             + self.orthogonality_penalty_weight * orthogonality_penalty
         )
         return (
             total_loss,
             val_loss,
-            kl_div,
             encoder_penalty,
             orthogonality_penalty,
         )
 
     def meta_train_batch(self, inputs, target):
-        latents, kl_div = self.model.encode(inputs)
+        latents = self.model.encode(inputs)
         latents_init = latents
 
         for i in range(self.inner_update_epoch):
@@ -113,7 +110,7 @@ class LEO:
             latents = latents - self.model.inner_l_rate * latents.grad.data
 
         encode_penalty = torch.mean((latents_init - latents) ** 2)
-        return latents, kl_div, encode_penalty
+        return latents, encode_penalty
 
     def finetune_validation(
         self, latents, inputs, target, val_input, val_target
@@ -151,7 +148,7 @@ class LEO:
         wn = torch.norm(weight, dim=1, keepdim=True) + 1e-20
         correlation_matrix = w2 / torch.mm(wn, wn.transpose(0, 1))
         assert correlation_matrix.size(0) == correlation_matrix.size(1)
-        I = torch.eye(correlation_matrix.size(0)).cuda(device=device)
+        I = torch.eye(correlation_matrix.size(0)).to(device=device)
         return torch.mean((correlation_matrix - I) ** 2)
 
     def train(self, task_path):
@@ -184,7 +181,7 @@ class LEO:
             lr=self.out_lr,
             weight_decay=self.l2_penalty_weight,
         )
-        optim_lr = torch.optim.Adam(lr_params, lr=self.out_lr)
+        optim_lr = torch.optim.Adam(lr_params, lr=0.001)
         for step in range(self.total_step):
             optim.zero_grad()
             optim_lr.zero_grad()
@@ -194,7 +191,6 @@ class LEO:
             (
                 total_loss,
                 val_loss,
-                kl_div,
                 encoder_penalty,
                 orthogonality_penalty,
             ) = self.run_batch(batch, step)
@@ -209,10 +205,15 @@ class LEO:
             optim.step()
             optim_lr.step()
             if float(self.model.inner_l_rate) > self.inner_lr * 1.2:
-                self.model.inner_l_rate.data = torch.FloatTensor([self.inner_lr])
+                self.model.inner_l_rate.data = torch.FloatTensor(
+                    [self.inner_lr]
+                )
             if float(self.model.fintune_lr) > self.fintune_lr * 10:
-                self.model.fintune_lr.data = torch.FloatTensor([self.fintune_lr])
+                self.model.fintune_lr.data = torch.FloatTensor(
+                    [self.fintune_lr]
+                )
             self.model.to(device)
+
     def test(self):
         pass
         # TODO

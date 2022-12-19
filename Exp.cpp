@@ -33,15 +33,22 @@ void expkNNSearch(string);
 
 void expInsert();
 
+void expAvgHeightPartition(string);
+
 int main(int argc, char *argv[])
 {
 
-    expPointSearch(argv[1]);
+    // expPointSearch(argv[1]);
 
-    expRangeSearch(argv[1]);
+    // expRangeSearch(argv[1]);
 
-    expkNNSearch(argv[1]);
-    
+    // expkNNSearch(argv[1]);
+    cout << "start!" << endl;
+
+    expAvgHeightPartition(argv[1]);
+
+    // expSplitDataSave(argv[1], argv[2]);
+
     cout << "finish!" << endl;
 }
 
@@ -250,12 +257,13 @@ void expRangeSearch(string dataset)
                 }
                 cout << "time consumption : " << timeconsume / range_query.size() << " ns per point query" << endl;
                 exp_Recorder->printRangeQuery(range_query.size());
-                cout << "--------------end------------------" << endl << endl << endl;
+                cout << "--------------end------------------" << endl
+                     << endl
+                     << endl;
             }
         }
     }
 }
-
 
 void expkNNSearch(string dataset)
 {
@@ -563,4 +571,75 @@ void expRemove()
     // cout << "read query data:" << query_path << endl;
 
     cout << "-------------------- end insert * " << 0.4 << " * ---------------------" << endl;
+}
+
+void expAvgHeightPartition(string dataset)
+{
+
+    cout << dataset << endl;
+    int range_split_num = 100;
+    vector<double> data_space_bound;
+    string csv_path = "";
+    string model_param_path = "";
+
+    if (dataset == "uniform")
+    {
+        data_space_bound = {0, 1, 0, 1};
+        csv_path = "/data/jitao/dataset/uniform/2d_len_1e8_seed_1.csv";
+        model_param_path = "/data/jitao/dataset/uniform/initial_param_mono/";
+    }
+    else if (dataset == "skewed")
+    {
+        data_space_bound = {0, 1, 0, 1};
+        csv_path = "/data/jitao/dataset/skewed/2d_len_1e8_seed_1.csv";
+        model_param_path = "/data/jitao/dataset/skewed/initial_param_mono/";
+    }
+    else if (dataset == "osm_cn")
+    {
+        data_space_bound = {70.9825433, 142.2560836, 4.999728700, 54.35880621};
+        csv_path = "";
+        model_param_path = "";
+    }
+    else if (dataset == "osm_ne_us")
+    {
+        data_space_bound = {-81.79535869999985, -65.27891709999955, 38.43836500000005, 45.98917950000055};
+        csv_path = "/data/jitao/dataset/OSM_US_NE/20_outliers_lon_lat.csv";
+        model_param_path = "/data/jitao/dataset/OSM_US_NE/initial_param_mono/";
+    }
+    else if (dataset == "tiger")
+    {
+        range_split_num = 40;
+        data_space_bound = {-90.3100275, -64.566563, 17.627786999999994, 47.457235};
+        csv_path = "/data/jitao/dataset/Tiger/center_tiger_east_17m.txt";
+        model_param_path = "/data/jitao/dataset/Tiger/initial_param_mono/";
+    }
+    else
+    {
+        cout << dataset << ": error distribution";
+        return;
+    }
+
+    string raw_data_path = csv_path;
+    cout << "raw data path: " << raw_data_path << endl;
+    CellTree *cell_tree = new CellTree(range_split_num, data_space_bound, raw_data_path);
+    cout << "raw data size : " << cell_tree->raw_data.size() << endl;
+    auto start_time = chrono::high_resolution_clock::now();
+
+    cout << "build begin" << endl;
+    cell_tree->buildTree(cell_tree->cell_bound_idx, &cell_tree->root, 0);
+    cout << "build end" << endl;
+
+    cout << "build check begin" << endl;
+    cell_tree->buildCheck(&cell_tree->root, 0);
+    cout << "build check end" << endl;
+
+    cout << "load model parameter begin" << endl;
+    cell_tree->modelParamPath = model_param_path;
+    cell_tree->train(&cell_tree->root);
+    cout << "train fiish" << endl;
+    long cost_time = chrono::duration_cast<chrono::seconds>(chrono::high_resolution_clock::now() - start_time).count();
+    cout << "---time cost of building----" << cost_time << endl;
+
+    double avg = cell_tree->travleAverageHeight();
+    cout << "avg: " << avg << endl;
 }

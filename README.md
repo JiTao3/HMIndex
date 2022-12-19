@@ -1,4 +1,4 @@
-# HIndex
+# HMIndex
 
 ----------------------
 
@@ -58,7 +58,7 @@ python -u Psrc/main.py
 ```
 ### Query Experiments
 
-You can use the meta-optimizer to train the model while building HIndex, or to batch generate initialization parameters and load the trained parameters.
+You can use the meta-optimizer to train the model while building HM-Index, or to batch generate initialization parameters and load the trained parameters.
 
 You need to modify the following and compile the source file.
 
@@ -93,13 +93,13 @@ Here is an example of an experiment with a uniform distributed dataset and queri
 cd build 
 cmake .. 
 make 
-./build/HIndex uniform >> log/uniform_v1.log 
+./build/HM-Index uniform >> log/uniform_v1.log 
 ```
 
 
 ### Others 
 
-Naming issues: CellTree is called HIndex.
+Naming issues: CellTree is called HM-Index.
 
 
 

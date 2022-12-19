@@ -869,8 +869,8 @@ void CellTree::train(boost::variant<InnerNode *, LeafNode *, GridNode *, int> ro
         if (node->getKeysNum() <= 2)
             return;
         node->index_model->loadParameter(this->modelParamPath + to_string(TRAIN_LEAF_NODE_NUM) + ".csv");
-        // node->index_model->buildModel();
-        node->index_model->getErrorBound();
+        node->index_model->buildModel();
+        // node->index_model->getErrorBound();
         cout << "leaf node index :" << TRAIN_LEAF_NODE_NUM
              << "; node error bound: " << node->index_model->error_bound[0] << ", " << node->index_model->error_bound[1]
              << " ; node key conter :" << node->getKeysNum() << endl;
@@ -884,8 +884,9 @@ void CellTree::train(boost::variant<InnerNode *, LeafNode *, GridNode *, int> ro
             return;
 
         node->index_model->loadParameter(this->modelParamPath + to_string(TRAIN_LEAF_NODE_NUM) + ".csv");
-        // node->index_model->buildModel();zaCVb
-        node->index_model->getErrorBound();
+        node->index_model->buildModel();
+        // node->index_model->getParamFromScoket()
+        // node->index_model->getErrorBound();
         cout << "grid node index :" << TRAIN_LEAF_NODE_NUM
              << "; node error bound: " << node->index_model->error_bound[0] << ", " << node->index_model->error_bound[1]
              << " ; node key conter :" << node->getKeysNum() << endl;
@@ -1054,4 +1055,90 @@ void getAllData(boost::variant<InnerNode *, LeafNode *, GridNode *, int> root,
     {
         return;
     }
+}
+
+double CellTree::travleAverageHeight()
+{
+    queue<boost::variant<InnerNode *, LeafNode *, GridNode *, int>> even_layer_nodes;
+    queue<boost::variant<InnerNode *, LeafNode *, GridNode *, int>> odd_layer_nodes;
+    even_layer_nodes.push(&this->root);
+    double avg = 0;
+    vector<int> leaf_sizes;
+    int index = 0;
+    double nodes_num = 0;
+    int inner_node_num = 0;
+    while (!even_layer_nodes.empty() || !odd_layer_nodes.empty())
+    {
+        if ((index % 2) == 0)
+        {
+            nodes_num += even_layer_nodes.size();
+            avg += (index + 1);
+            while (!even_layer_nodes.empty())
+            {
+                boost::variant<InnerNode *, LeafNode *, GridNode *, int> top = even_layer_nodes.front();
+                even_layer_nodes.pop();
+                if (top.type() == typeid(InnerNode *))
+                {
+                    inner_node_num++;
+                    InnerNode *innernode = boost::get<InnerNode *>(top);
+                    for (int i = 0; i < innernode->children.size(); i++)
+                    {
+                        if (!(innernode->children[i].type() == typeid(int)))
+                            odd_layer_nodes.push(innernode->children[i]);
+                    }
+                }
+                else if (top.type() == typeid(LeafNode *))
+                {
+                    avg += (index + 1);
+                    LeafNode *leafnode = boost::get<LeafNode *>(top);
+                    leaf_sizes.push_back(leafnode->getKeysNum());
+                }
+                else if (top.type() == typeid(GridNode *))
+                {
+                    avg += (index + 1);
+                    GridNode *gridnode = boost::get<GridNode *>(top);
+                    leaf_sizes.push_back(gridnode->getKeysNum());
+                }
+            }
+        }
+        else
+        {
+            nodes_num += odd_layer_nodes.size();
+            while (!odd_layer_nodes.empty())
+            {
+                boost::variant<InnerNode *, LeafNode *, GridNode *, int> top = odd_layer_nodes.front();
+                odd_layer_nodes.pop();
+                if (top.type() == typeid(InnerNode *))
+                {
+                    inner_node_num++;
+                    InnerNode *innernode = boost::get<InnerNode *>(top);
+                    for (int i = 0; i < innernode->children.size(); i++)
+                    {
+                        if (!(innernode->children[i].type() == typeid(int)))
+                            even_layer_nodes.push(innernode->children[i]);
+                    }
+                }
+                else if (top.type() == typeid(LeafNode *))
+                {
+                    avg += (index + 1);
+                    LeafNode *leafnode = boost::get<LeafNode *>(top);
+                    leaf_sizes.push_back(leafnode->getKeysNum());
+                }
+                else if (top.type() == typeid(GridNode *))
+                {
+                    avg += (index + 1);
+                    GridNode *gridnode = boost::get<GridNode *>(top);
+                    leaf_sizes.push_back(gridnode->getKeysNum());
+                }
+            }
+        }
+        index++;
+    }
+    for (auto s : leaf_sizes)
+    {
+        cout << s << " ";
+    }
+    cout << endl;
+    cout << "inner node num: " << inner_node_num << endl;
+    return avg / (double)leaf_sizes.size();
 }

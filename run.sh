@@ -1,8 +1,8 @@
-# for split data
-# nohup ./build/CellTree_split /data/userpath/dataset/OSM/osm.csv /data/userpath/dataset/OSM/split2/ > /data/userpath/dataset/OSM/split2.log 2>&1 &
-# nohup ./build/CellTree_split /data/userpath/dataset/Tiger/center_tiger_east_17m.txt /data/userpath/dataset/Tiger/split2/ > log/tiger_split2.log 2>&1 &
-# nohup ./build/CellTree_split /data/userpath/dataset/uniform/2d_len_1e8_seed_1.csv /data/userpath/dataset/uniform/split/ > /data/userpath/dataset/uniform/split.log 2>&1 &
-# nohup ./build/CellTree_split /data/userpath/dataset/skewed/2d_len_1e8_seed_1.csv /data/userpath/dataset/skewed/split/ > /data/userpath/dataset/skewed/split.log 2>&1 &
+# # for split data
+# nohup ./build/CellTree_split osm_ne_us > /data/jitao/dataset/OSM/split_mono.log 2>&1 &
+# nohup ./build/CellTree_split tiger > /data/jitao/dataset/Tiger/split_mono.log 2>&1 &
+# nohup ./build/CellTree_split uniform > /data/jitao/dataset/uniform/split_mono.log 2>&1 &
+# nohup ./build/CellTree_split skewed > /data/jitao/dataset/skewed/split_mono.log 2>&1 &
 
 # for training 
 # nohup ./build/CellTree /data/userpath/dataset/OSM/osm.csv /data/userpath/dataset/OSM/trained_modelParam_for_split2/ > log/pointSearch_v1.3.log 2>&1 &
@@ -27,7 +27,7 @@
 # ./build/CellTree uniform >> log/knn/no_db_uniform_v4.log  && \
 # ./build/CellTree skewed >> log/knn/no_db_skewedv4.log && \
 # ./build/CellTree osm_ne_us >> log/knn/no_db_osm_ne_us_v4.log && \
-./build/CellTree tiger >> log/knn/no_db_tiger_v4.log 
+# ./build/CellTree tiger >> log/knn/no_db_tiger_v4.log 
 
 
 # ./build/CellTree uniform >> log/train_random/random_uniform_v1.log  && \
@@ -89,4 +89,7 @@
 # ./build/CellTree osm_ne_us >> log/knn/v3osm_ne_us_v1.log
 
 
-#  ./build/CellTree >> log/insert/v2skewed_insert.log
+ ./build/CellTree tiger >> log/training_time_tiger.log
+#  ./build/CellTree uniform >> log/training_time_uniform.log && \
+#  ./build/CellTree osm_ne_us >> log/training_time_osm.log
+#  ./build/CellTree skewed >> log/training_time_skewed.log
